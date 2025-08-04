@@ -1,17 +1,24 @@
-//
-//  BibleAppApp.swift
-//  BibleApp
-//
-//  Created by Work Laptop on 04/08/2025.
-//
-
 import SwiftUI
+import FirebaseCore
 
 @main
 struct BibleAppApp: App {
+    @StateObject private var authState = AuthenticationState()
+
+    init() {
+        FirebaseApp.configure()
+        print("BibleAppApp: Firebase configured, authState initialized: \(authState.isAuthenticated)")
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if authState.isAuthenticated {
+                HomeView()
+                    .environmentObject(authState) // Ensure HomeView also receives authState
+            } else {
+                AuthView()
+                    .environmentObject(authState)
+            }
         }
     }
 }
