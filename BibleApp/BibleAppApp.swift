@@ -6,19 +6,18 @@ struct BibleAppApp: App {
     @StateObject private var authState = AuthenticationState()
 
     init() {
+        configureFirebase()
+    }
+
+    private func configureFirebase() {
         FirebaseApp.configure()
-        print("BibleAppApp: Firebase configured, authState initialized: \(authState.isAuthenticated)")
+        print("BibleAppApp: Firebase configured")
     }
 
     var body: some Scene {
         WindowGroup {
-            if authState.isAuthenticated {
-                HomeView()
-                    .environmentObject(authState) // Ensure HomeView also receives authState
-            } else {
-                AuthView()
-                    .environmentObject(authState)
-            }
+            ContentView()
+                .environmentObject(authState)
         }
     }
 }

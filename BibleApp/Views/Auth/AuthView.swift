@@ -52,7 +52,6 @@ struct AuthView: View {
                             },
                             onForgotPassword: { showingResetPassword = true }
                         )
-                        DebugButtonView()
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, geometry.size.width > 600 ? 40 : 24)
@@ -222,18 +221,6 @@ struct ActionButtonsView: View {
             .padding(.bottom, geometry.size.width > 600 ? 60 : 40)
             .accessibilityLabel("Forgot Password")
         }
-    }
-}
-
-// Subview for debug button
-struct DebugButtonView: View {
-    var body: some View {
-        Button("Debug: Go to Home") {
-            print("Debug: Manually setting isAuthenticated to true")
-        }
-        .padding()
-        .foregroundColor(.blue)
-        .accessibilityLabel("Debug: Go to Home")
     }
 }
 
