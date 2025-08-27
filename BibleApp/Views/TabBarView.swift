@@ -4,28 +4,25 @@ struct TabBarView: View {
     var body: some View {
         TabView {
             // Home Tab
-            GeometryReader { geometry in
-                NavigationStack {
-                    HomeView()
-                        .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
-                }
-                .navigationTitle("Home")
+            NavigationStack {
+                HomeView()
             }
             .tabItem {
-                Image(systemName: "house.fill")
-                Text("Home")
+                Label("Home", systemImage: "house.fill")
+                    .environment(\.symbolVariants, .none)
             }
             .tag(0)
-            
+
             // Settings Tab
             SettingsView()
                 .tabItem {
-                    Image(systemName: "gear")
-                    Text("Settings")
+                    Label("Settings", systemImage: "gear")
+                        .environment(\.symbolVariants, .none)
                 }
                 .tag(1)
         }
-        .background(Color.white.ignoresSafeArea())
+        .tint(.black)
+        .background(Color.white)
     }
 }
 
