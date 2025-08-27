@@ -1,16 +1,16 @@
-import Foundation
-import FirebaseAuth // Import FirebaseAuth for Auth class
+import SwiftUI
+import FirebaseAuth
 
 class AuthenticationState: ObservableObject {
-    @Published var isAuthenticated: Bool = false
-
+    @Published var isAuthenticated: Bool = Auth.auth().currentUser != nil
+    
     init() {
-        // Check if user is already logged in
-        if Auth.auth().currentUser != nil {
-            isAuthenticated = true
+        Auth.auth().addStateDidChangeListener { _, user in
+            self.isAuthenticated = user != nil
+            print("AuthenticationState: isAuthenticated changed to \(self.isAuthenticated)")
         }
     }
-
+    
     func updateAuthenticationState(isAuthenticated: Bool) {
         self.isAuthenticated = isAuthenticated
     }

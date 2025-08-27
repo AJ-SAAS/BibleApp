@@ -4,17 +4,6 @@ struct HomeView: View {
     @EnvironmentObject var authState: AuthenticationState
     @StateObject private var viewModel = DevotionViewModel()
 
-    struct TodoTask {
-        var title: String
-        var isCompleted: Bool = false
-    }
-
-    @State private var todoTasks: [TodoTask] = [
-        TodoTask(title: "Prayed today?"),
-        TodoTask(title: "Read today's Bible Verse?"),
-        TodoTask(title: "Completed the task?")
-    ]
-
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
@@ -103,42 +92,40 @@ struct HomeView: View {
                             .foregroundColor(.black)
                             .padding(.bottom, 4)
                         
-                        ForEach(todoTasks.indices, id: \.self) { index in
+                        ForEach(viewModel.tasks.indices, id: \.self) { index in
                             Button(action: {
-                                todoTasks[index].isCompleted.toggle()
+                                viewModel.toggleTaskCompletion(at: index)
                             }) {
                                 HStack {
-                                    Image(systemName: todoTasks[index].isCompleted ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(todoTasks[index].isCompleted ? .green : .gray)
+                                    Image(systemName: viewModel.tasks[index].isCompleted ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(viewModel.tasks[index].isCompleted ? .green : .gray)
                                         .font(.title3)
-                                    Text(todoTasks[index].title)
+                                    Text(viewModel.tasks[index].title)
                                         .foregroundColor(.black)
                                         .font(.system(size: 18, weight: .regular, design: .serif))
                                     Spacer()
                                 }
                             }
                             .buttonStyle(PlainButtonStyle())
-                            .accessibilityLabel(todoTasks[index].title + (todoTasks[index].isCompleted ? ", completed" : ", not completed"))
+                            .accessibilityLabel(viewModel.tasks[index].title + (viewModel.tasks[index].isCompleted ? ", completed" : ", not completed"))
                         }
                     }
                     .padding(.vertical, 12)
                     
-                    // Achieved Button
-                    Button(action: {
-                        viewModel.toggleTaskCompletion()
-                    }) {
-                        Text(viewModel.isTaskCompleted ? "Achieved" : "Achieved?")
-                            .font(.system(.headline, design: .default, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: 400)
-                            .padding()
-                            .background(viewModel.isTaskCompleted ? Color.green : Color.black)
-                            .cornerRadius(8)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 12)
-                    .padding(.bottom, 60) // Add extra padding to ensure button is above tab bar
-                    .accessibilityLabel(viewModel.isTaskCompleted ? "Task Achieved" : "Mark Task as Achieved")
+                    // Achieved Button (Display-Only)
+                    Text(viewModel.isTaskCompleted && viewModel.completedTaskCount == 3 ? "All Tasks Completed!" : "Achieved \(viewModel.completedTaskCount)/3")
+                        .font(.system(.headline, design: .default, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: 400)
+                        .padding()
+                        .background(viewModel.isTaskCompleted ? Color.green : (viewModel.completedTaskCount > 0 ? Color.black : Color.gray))
+                        .cornerRadius(8)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 12)
+                        .padding(.bottom, 60)
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.isTaskCompleted)
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.completedTaskCount)
+                        .accessibilityLabel(viewModel.isTaskCompleted && viewModel.completedTaskCount == 3 ? "All tasks completed and logged" : "Achieved \(viewModel.completedTaskCount) of 3 tasks")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
@@ -146,33 +133,35 @@ struct HomeView: View {
             }
             .scrollIndicators(.hidden)
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 50) // Reserve space for tab bar
+                Color.clear.frame(height: 50)
             }
             .background(Color.white)
         }
+        .onAppear {
+            viewModel.loadCompletedDaysForWeek()
+        }
     }
-
-    // Helper function to map day number to letter
+    
     private func dayOfWeekLetter(_ day: Int) -> String {
         let days = ["M", "T", "W", "T", "F", "S", "S"]
         return days[day - 1]
     }
-
-    // Helper to get full day name for today’s date
+    
     private func dayOfWeekString() -> String {
-        let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"
-        return formatter.string(from: date)
+        return formatter.string(from: viewModel.currentDate)
     }
 }
 
 #Preview("iPhone 14") {
     HomeView()
         .environmentObject(AuthenticationState())
+        .environmentObject(DevotionViewModel())
 }
 
 #Preview("iPad Pro") {
     HomeView()
         .environmentObject(AuthenticationState())
+        .environmentObject(DevotionViewModel())
 }
