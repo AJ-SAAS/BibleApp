@@ -27,11 +27,11 @@ struct SplashView: View {
                         .ignoresSafeArea()
                     
                     VStack {
-                        Image("CloserToChristLogo") // Updated to match AuthView
+                        Image("dailybiblelogo") // Updated to match AuthView
                             .resizable()
                             .scaledToFit()
                             .frame(height: 100)
-                            .accessibilityLabel("Bible App Logo")
+                            .accessibilityLabel("dailybiblelogo")
                         
                         Text("Bible App")
                             .font(.custom("Georgia", size: 36))

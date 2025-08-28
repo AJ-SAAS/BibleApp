@@ -73,21 +73,21 @@ struct AuthView: View {
                 .onAppear {
                     print("AuthView: Appeared, authState isAuthenticated: \(authState.isAuthenticated)")
                 }
-                .onChange(of: email) { _ in
+                .onChange(of: email) { _, _ in // Updated to new syntax
                     viewModel.errorMessage = nil
                     isProcessing = false
                 }
-                .onChange(of: isSignUp) { _ in
+                .onChange(of: isSignUp) { _, _ in // Updated to new syntax
                     viewModel.errorMessage = nil
                     isProcessing = false
                 }
-                .onChange(of: viewModel.isAuthenticated) { newValue in
+                .onChange(of: viewModel.isAuthenticated) { _, newValue in // Updated to new syntax
                     print("AuthView: isAuthenticated changed to \(newValue)")
                     if newValue {
                         authState.updateAuthenticationState(isAuthenticated: true)
                     }
                 }
-                .onChange(of: viewModel.errorMessage) { _ in
+                .onChange(of: viewModel.errorMessage) { _, _ in // Updated to new syntax
                     isProcessing = false
                 }
             }
@@ -99,12 +99,12 @@ struct AuthView: View {
 struct LogoView: View {
     let geometry: GeometryProxy
     var body: some View {
-        Image("CloserToChristLogo")
+        Image("dailybiblelogo")
             .resizable()
             .scaledToFit()
             .frame(maxWidth: min(geometry.size.width * 0.4, 200))
             .padding(.top, geometry.size.width > 600 ? 40 : 24)
-            .accessibilityLabel("Closer to Christ Logo")
+            .accessibilityLabel("dailybiblelogo")
     }
 }
 
@@ -198,7 +198,7 @@ struct ActionButtonsView: View {
             .foregroundColor(.white)
             .frame(maxWidth: min(geometry.size.width * 0.8, 400))
             .padding()
-            .background((email.isEmpty || password.isEmpty || (isSignUp && confirmPassword.isEmpty) || isProcessing) ? .gray : .blue)
+            .background((email.isEmpty || password.isEmpty || (isSignUp && confirmPassword.isEmpty) || isProcessing) ? .gray : .black)
             .cornerRadius(8)
             .disabled(email.isEmpty || password.isEmpty || (isSignUp && confirmPassword.isEmpty) || isProcessing)
             .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
@@ -261,7 +261,7 @@ struct ResetPasswordView: View {
             .foregroundColor(.white)
             .frame(maxWidth: min(geometry.size.width * 0.8, 400))
             .padding()
-            .background((resetEmail.isEmpty || isProcessing) ? .gray : .blue)
+            .background((resetEmail.isEmpty || isProcessing) ? .gray : .black)
             .cornerRadius(8)
             .disabled(resetEmail.isEmpty || isProcessing)
             .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)

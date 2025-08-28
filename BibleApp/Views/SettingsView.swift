@@ -3,7 +3,7 @@ import FirebaseAuth
 
 struct SettingsView: View {
     @EnvironmentObject var authState: AuthenticationState
-    @State private var name: String = "User Name"
+    @State private var name: String = "Add User Name"
     @State private var ageRange: String = "18-24"
     @State private var email: String = "user@example.com"
     @State private var denomination: String = ""

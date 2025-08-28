@@ -40,10 +40,10 @@ struct HomeView: View {
                     
                     // Verse of the Day Label
                     Text("VERSE OF THE DAY")
-                        .font(.system(size: 16, weight: .medium, design: .serif))
+                        .font(.custom("OpenSans-Medium", size: 16))
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 16)
+                        .padding(.top, 8) // Reduced from 16 to 8 to decrease gap
                     
                     // Verse Card
                     ZStack {
@@ -69,27 +69,47 @@ struct HomeView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("Verse: \(viewModel.currentDevotion.verse), \(viewModel.currentDevotion.reference)")
                     
-                    // Task Label
-                    Text("TASK")
-                        .font(.system(size: 14, weight: .medium, design: .serif))
-                        .foregroundColor(.gray)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, geometry.size.width / 80)
-                    
-                    // Task Body
-                    Text(viewModel.currentDevotion.task)
-                        .font(.system(size: 18, weight: .regular, design: .serif))
-                        .foregroundColor(.black)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: 600, alignment: .leading)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityLabel("Task: \(viewModel.currentDevotion.task)")
+                    // Task Card
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color(hex: "#fffcf5"), // Left
+                                        Color(hex: "#e6e2d5")  // Right
+                                    ]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("TASK OF THE DAY")
+                                .font(.custom("OpenSans-Medium", size: 16))
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Text(viewModel.currentDevotion.task)
+                                .font(.system(size: 18, weight: .regular, design: .serif))
+                                .foregroundColor(.black)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: 600, alignment: .leading)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .padding(20)
+                    }
+                    .frame(maxWidth: 600)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, geometry.size.width / 80)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Task of the Day: \(viewModel.currentDevotion.task)")
                     
                     // To-Do List
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Today's Checklist")
-                            .font(.system(size: 16, weight: .semibold, design: .serif))
-                            .foregroundColor(.black)
+                        Text("TODAY'S CHECKLIST")
+                            .font(.custom("OpenSans-Medium", size: 16))
+                            .foregroundColor(.gray)
                             .padding(.bottom, 4)
                         
                         ForEach(viewModel.tasks.indices, id: \.self) { index in
@@ -118,7 +138,17 @@ struct HomeView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: 400)
                         .padding()
-                        .background(viewModel.isTaskCompleted ? Color.green : (viewModel.completedTaskCount > 0 ? Color.black : Color.gray))
+                        .background(
+                            RadialGradient(
+                                gradient: Gradient(colors: [
+                                    Color(hex: "#b505c8"), // Light purple in center
+                                    Color(hex: "#5f0b89")  // Dark purple at edges
+                                ]),
+                                center: .center,
+                                startRadius: geometry.size.width * 0.1,
+                                endRadius: geometry.size.width * 0.5
+                            )
+                        )
                         .cornerRadius(8)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 12)
@@ -151,6 +181,31 @@ struct HomeView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"
         return formatter.string(from: viewModel.currentDate)
+    }
+}
+
+// Extension to support hex colors
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 6: // RGB (24-bit)
+            (r, g, b, a) = ((int >> 16) & 255, (int >> 8) & 255, int & 255, 255)
+        case 8: // RGBA (32-bit)
+            (r, g, b, a) = ((int >> 24) & 255, (int >> 16) & 255, (int >> 8) & 255, int & 255)
+        default:
+            (r, g, b, a) = (0, 0, 0, 255)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 }
 
