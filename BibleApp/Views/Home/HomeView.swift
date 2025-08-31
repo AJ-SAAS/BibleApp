@@ -43,7 +43,7 @@ struct HomeView: View {
                         .font(.custom("OpenSans-Medium", size: 16))
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 8) // Reduced from 16 to 8 to decrease gap
+                        .padding(.top, 8)
                     
                     // Verse Card
                     ZStack {
@@ -75,8 +75,8 @@ struct HomeView: View {
                             .fill(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        Color(hex: "#fffcf5"), // Left
-                                        Color(hex: "#e6e2d5")  // Right
+                                        Color(hex: "#fffcf5"),
+                                        Color(hex: "#e6e2d5")
                                     ]),
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -132,7 +132,7 @@ struct HomeView: View {
                     }
                     .padding(.vertical, 12)
                     
-                    // Achieved Button (Display-Only)
+                    // Achieved Button
                     Text(viewModel.isTaskCompleted && viewModel.completedTaskCount == 3 ? "All Tasks Completed!" : "Achieved \(viewModel.completedTaskCount)/3")
                         .font(.system(.headline, design: .default, weight: .semibold))
                         .foregroundColor(.white)
@@ -141,8 +141,8 @@ struct HomeView: View {
                         .background(
                             RadialGradient(
                                 gradient: Gradient(colors: [
-                                    Color(hex: "#b505c8"), // Light purple in center
-                                    Color(hex: "#5f0b89")  // Dark purple at edges
+                                    Color(hex: "#b505c8"),
+                                    Color(hex: "#5f0b89")
                                 ]),
                                 center: .center,
                                 startRadius: geometry.size.width * 0.1,
@@ -184,7 +184,6 @@ struct HomeView: View {
     }
 }
 
-// Extension to support hex colors
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

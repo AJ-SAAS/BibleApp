@@ -1,16 +1,26 @@
 import SwiftUI
-import FirebaseFirestore
-import FirebaseAuth
+import Foundation
 
 class DevotionViewModel: ObservableObject {
-    @Published var currentDevotion: Devotion = Devotion(month: 1, day: 1, verse: "Loading verse...", reference: "", task: "Loading task...")
+    @Published var currentDevotion: Devotion = Devotion(
+        month: 1,
+        day: 1,
+        verse: "Loading verse...",
+        reference: "",
+        task: "Loading task..."
+    )
     @Published var tasks: [Task] = []
     @Published var completedDays: Set<Int> = []
     @Published var completedTaskCount: Int = 0
     @Published var isTaskCompleted: Bool = false
     @Published var currentMonthTheme: String = ""
-    private let db = Firestore.firestore()
-    @Published var currentDate: Date = Date() // Made @Published for HomeView access
+    @Published var currentDate: Date = Date()
+    
+    private let userDefaults = UserDefaults.standard
+    private let tasksKey = "ChecklistTasks"
+    private let completedDaysKey = "CompletedDays"
+    private let taskCountKey = "CompletedTaskCount"
+    private let weekKey = "CurrentWeek"
     
     struct Task: Identifiable {
         let id = UUID()
@@ -35,7 +45,6 @@ class DevotionViewModel: ObservableObject {
         if let devotion = DevotionData.devotions.first(where: { $0.month == month && $0.day == day }) {
             currentDevotion = devotion
         } else {
-            // Fallback if no devotion found
             currentDevotion = Devotion(
                 month: month,
                 day: day,
@@ -45,13 +54,8 @@ class DevotionViewModel: ObservableObject {
             )
         }
         
-        // Set three specific tasks
-        tasks = [
-            Task(title: "Prayed today?", isCompleted: false),
-            Task(title: "Read today's Bible Verse?", isCompleted: false),
-            Task(title: "Completed the task?", isCompleted: false)
-        ]
-        updateCompletedTaskCount()
+        // Load tasks for the current day
+        loadTasksForCurrentDay()
     }
     
     func toggleTaskCompletion(at index: Int? = nil) {
@@ -59,7 +63,7 @@ class DevotionViewModel: ObservableObject {
             tasks[index].isCompleted.toggle()
         } else {
             isTaskCompleted.toggle()
-            tasks[0].isCompleted = isTaskCompleted // Fallback for legacy calls (not used)
+            tasks[0].isCompleted = isTaskCompleted // Fallback for legacy calls
         }
         updateCompletedTaskCount()
         saveProgress()
@@ -69,88 +73,83 @@ class DevotionViewModel: ObservableObject {
     private func updateCompletedTaskCount() {
         completedTaskCount = tasks.filter { $0.isCompleted }.count
         isTaskCompleted = completedTaskCount == tasks.count
+        saveCompletedTaskCount()
     }
     
     private func checkAllTasksCompleted() {
         if completedTaskCount == tasks.count {
             let calendar = Calendar.current
-            let day = calendar.component(.weekday, from: currentDate) // 1=Sunday, 2=Monday, ..., 7=Saturday
+            let day = calendar.component(.weekday, from: currentDate) // 1=Sunday, ..., 7=Saturday
             completedDays.insert(day)
-            saveCompletedDaysToFirestore()
+            saveCompletedDays()
         }
     }
     
     private func saveProgress() {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateString = dateFormatter.string(from: currentDate)
         
         let progressData = tasks.map { ["title": $0.title, "isCompleted": $0.isCompleted] }
-        db.collection("users").document(userId).collection("dailyProgress").document(dateString).setData([
-            "tasks": progressData,
-            "date": Timestamp(date: currentDate)
-        ]) { error in
-            if let error = error {
-                print("Error saving progress: \(error.localizedDescription)")
-            } else {
-                print("Progress saved for \(dateString)")
-            }
-        }
+        userDefaults.set(progressData, forKey: "\(tasksKey)_\(dateString)")
+        print("Progress saved locally for \(dateString)")
     }
     
-    private func saveCompletedDaysToFirestore() {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM"
-        let monthString = dateFormatter.string(from: currentDate)
-        
-        db.collection("users").document(userId).collection("completedDays").document(monthString).setData([
-            "days": Array(completedDays),
-            "month": Timestamp(date: currentDate)
-        ]) { error in
-            if let error = error {
-                print("Error saving completed days: \(error.localizedDescription)")
-            } else {
-                print("Completed days saved for \(monthString)")
-            }
-        }
+    private func saveCompletedDays() {
+        userDefaults.set(Array(completedDays), forKey: completedDaysKey)
+        print("Completed days saved locally: \(completedDays)")
+    }
+    
+    private func saveCompletedTaskCount() {
+        userDefaults.set(completedTaskCount, forKey: taskCountKey)
+        print("Completed task count saved locally: \(completedTaskCount)")
     }
     
     func loadCompletedDaysForWeek() {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM"
-        let monthString = dateFormatter.string(from: currentDate)
+        let calendar = Calendar.current
+        let currentWeek = calendar.component(.weekOfYear, from: currentDate)
+        let savedWeek = userDefaults.integer(forKey: weekKey)
         
-        db.collection("users").document(userId).collection("completedDays").document(monthString).getDocument { snapshot, error in
-            if let error = error {
-                print("Error fetching completed days: \(error.localizedDescription)")
-            } else if let data = snapshot?.data(), let days = data["days"] as? [Int] {
-                self.completedDays = Set(days)
+        if savedWeek != currentWeek {
+            completedDays = []
+            tasks = [
+                Task(title: "Prayed today?", isCompleted: false),
+                Task(title: "Read today's Bible Verse?", isCompleted: false),
+                Task(title: "Completed the task?", isCompleted: false)
+            ]
+            saveCompletedDays()
+            saveProgress()
+            userDefaults.set(currentWeek, forKey: weekKey)
+            print("Reset completed days and tasks for new week: \(currentWeek)")
+        } else {
+            if let savedDays = userDefaults.array(forKey: completedDaysKey) as? [Int] {
+                completedDays = Set(savedDays)
             }
-            // Fetch tasks and update theme/devotion
-            self.fetchTasksForCurrentDay()
-            self.fetchDailyContent() // Ensure theme/devotion are updated after fetch
+            loadTasksForCurrentDay()
         }
     }
     
-    private func fetchTasksForCurrentDay() {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
+    private func loadTasksForCurrentDay() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateString = dateFormatter.string(from: currentDate)
         
-        db.collection("users").document(userId).collection("dailyProgress").document(dateString).getDocument { snapshot, error in
-            if let data = snapshot?.data(), let taskData = data["tasks"] as? [[String: Any]] {
-                self.tasks = taskData.enumerated().map { index, task in
-                    Task(title: task["title"] as? String ?? self.tasks[safe: index]?.title ?? "Task \(index + 1)",
-                         isCompleted: task["isCompleted"] as? Bool ?? false)
-                }
-                self.updateCompletedTaskCount()
-                self.checkAllTasksCompleted()
+        if let taskData = userDefaults.array(forKey: "\(tasksKey)_\(dateString)") as? [[String: Any]] {
+            tasks = taskData.enumerated().map { index, task in
+                Task(
+                    title: task["title"] as? String ?? tasks[safe: index]?.title ?? "Task \(index + 1)",
+                    isCompleted: task["isCompleted"] as? Bool ?? false
+                )
             }
+        } else {
+            tasks = [
+                Task(title: "Prayed today?", isCompleted: false),
+                Task(title: "Read today's Bible Verse?", isCompleted: false),
+                Task(title: "Completed the task?", isCompleted: false)
+            ]
+            saveProgress()
         }
+        updateCompletedTaskCount()
     }
 }
 

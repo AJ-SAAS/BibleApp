@@ -8,6 +8,7 @@ struct TabBarView: View {
             NavigationStack {
                 HomeView()
                     .environmentObject(authState)
+                    .navigationTitle("Home")
             }
             .tabItem {
                 Label("Home", systemImage: "house.fill")
@@ -18,15 +19,15 @@ struct TabBarView: View {
             NavigationStack {
                 SettingsView()
                     .environmentObject(authState)
+                    .navigationTitle("Settings")
             }
             .tabItem {
                 Label("Settings", systemImage: "gear")
                     .environment(\.symbolVariants, .none)
-                }
+            }
             .tag(1)
         }
-        .tint(.black)
-        .background(Color.white)
+        .accentColor(.black)
     }
 }
 

@@ -6,6 +6,7 @@ import FirebaseAuth
 class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isAuthenticated: Bool = false
+    @Published var isGuest: Bool = false
     
     private let firebaseService: FirebaseService
     
@@ -14,7 +15,6 @@ class AuthViewModel: ObservableObject {
     }
     
     func signUp(email: String, password: String, authState: AuthenticationState) {
-        // Validation
         guard !email.isEmpty, !password.isEmpty else {
             errorMessage = "Please fill in all fields."
             print("Validation failed: Empty email or password")
@@ -29,7 +29,6 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
         print("Starting sign-up process for email: \(email)")
         
-        // Timeout after 10 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
             guard self?.isAuthenticated == false else { return }
             self?.errorMessage = "Request timed out. Please check your network and try again."
@@ -42,7 +41,7 @@ class AuthViewModel: ObservableObject {
                 case .success:
                     print("AuthViewModel: Sign-up successful, updating isAuthenticated")
                     self?.isAuthenticated = true
-                    authState.updateAuthenticationState(isAuthenticated: true)
+                    authState.updateAuthenticationState(isAuthenticated: true, isGuest: false)
                 case .failure(let error):
                     print("AuthViewModel: Sign-up failed with error: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
@@ -52,7 +51,6 @@ class AuthViewModel: ObservableObject {
     }
     
     func login(email: String, password: String, authState: AuthenticationState) {
-        // Validation
         guard !email.isEmpty, !password.isEmpty else {
             errorMessage = "Please fill in all fields."
             print("Validation failed: Empty email or password")
@@ -62,7 +60,6 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
         print("Starting login process for email: \(email)")
         
-        // Timeout after 10 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
             guard self?.isAuthenticated == false else { return }
             self?.errorMessage = "Request timed out. Please check your network and try again."
@@ -75,13 +72,20 @@ class AuthViewModel: ObservableObject {
                 case .success:
                     print("AuthViewModel: Login successful, updating isAuthenticated")
                     self?.isAuthenticated = true
-                    authState.updateAuthenticationState(isAuthenticated: true)
+                    authState.updateAuthenticationState(isAuthenticated: true, isGuest: false)
                 case .failure(let error):
                     print("AuthViewModel: Login failed with error: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
                 }
             }
         }
+    }
+    
+    func continueAsGuest(authState: AuthenticationState) {
+        errorMessage = nil
+        isGuest = true
+        authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
+        print("AuthViewModel: Continuing as guest")
     }
     
     func resetPassword(email: String) {
@@ -94,7 +98,6 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
         print("Starting reset password process for email: \(email)")
         
-        // Timeout after 10 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
             guard self?.errorMessage == nil else { return }
             self?.errorMessage = "Request timed out. Please check your network and try again."
@@ -117,5 +120,33 @@ class AuthViewModel: ObservableObject {
     
     func resetFields() {
         errorMessage = nil
+    }
+    
+    func deleteAccount(authState: AuthenticationState, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !isGuest else {
+            errorMessage = "Guest accounts cannot be deleted."
+            print("Delete account failed: Attempted to delete guest account")
+            completion(.failure(NSError(domain: "GuestAccount", code: -1, userInfo: [NSLocalizedDescriptionKey: "Guest accounts cannot be deleted."])))
+            return
+        }
+
+        errorMessage = nil
+        print("Starting account deletion process")
+
+        firebaseService.deleteAccount { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    print("AuthViewModel: Account deletion successful, updating auth state")
+                    authState.updateAuthenticationState(isAuthenticated: false, isGuest: false)
+                    self?.resetFields()
+                    completion(.success(()))
+                case .failure(let error):
+                    print("AuthViewModel: Account deletion failed with error: \(error.localizedDescription)")
+                    self?.errorMessage = error.localizedDescription
+                    completion(.failure(error))
+                }
+            }
+        }
     }
 }

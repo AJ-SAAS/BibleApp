@@ -12,84 +12,103 @@ struct AuthView: View {
     @State private var isProcessing: Bool = false
 
     var body: some View {
-        GeometryReader { geometry in
-            NavigationStack {
-                ScrollView {
-                    VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
-                        LogoView(geometry: geometry)
-                        FormView(
-                            geometry: geometry,
-                            email: $email,
-                            password: $password,
-                            confirmPassword: $confirmPassword,
-                            isSignUp: isSignUp,
-                            errorMessage: viewModel.errorMessage
-                        )
-                        ActionButtonsView(
-                            geometry: geometry,
-                            isSignUp: isSignUp,
-                            isProcessing: isProcessing,
-                            email: email,
-                            password: password,
-                            confirmPassword: confirmPassword,
-                            onAction: {
-                                isProcessing = true
-                                if isSignUp {
-                                    if password == confirmPassword {
-                                        viewModel.signUp(email: email, password: password, authState: authState)
-                                    } else {
-                                        viewModel.errorMessage = "Passwords do not match"
-                                        isProcessing = false
-                                    }
-                                } else {
-                                    viewModel.login(email: email, password: password, authState: authState)
-                                }
-                            },
-                            onToggleSignUp: {
-                                isSignUp.toggle()
-                                viewModel.resetFields()
-                                isProcessing = false
-                            },
-                            onForgotPassword: { showingResetPassword = true }
-                        )
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, geometry.size.width > 600 ? 40 : 24)
-                }
-                .background(Color.white.ignoresSafeArea())
-                .sheet(isPresented: $showingResetPassword) {
-                    ResetPasswordView(
+        NavigationStack {
+            GeometryReader { geometry in
+                contentView(geometry: geometry)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func contentView(geometry: GeometryProxy) -> some View {
+        if authState.isAuthenticated || authState.isGuest {
+            TabBarView()
+                .environmentObject(authState)
+        } else {
+            ScrollView {
+                VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
+                    LogoView(geometry: geometry)
+                    FormView(
                         geometry: geometry,
-                        resetEmail: $resetEmail,
-                        isProcessing: $isProcessing,
-                        onSendReset: { viewModel.resetPassword(email: resetEmail) },
-                        onCancel: {
-                            showingResetPassword = false
-                            resetEmail = ""
+                        email: $email,
+                        password: $password,
+                        confirmPassword: $confirmPassword,
+                        isSignUp: isSignUp,
+                        errorMessage: viewModel.errorMessage
+                    )
+                    ActionButtonsView(
+                        geometry: geometry,
+                        isSignUp: isSignUp,
+                        isProcessing: isProcessing,
+                        email: email,
+                        password: password,
+                        confirmPassword: confirmPassword,
+                        onAction: {
+                            isProcessing = true
+                            if isSignUp {
+                                if password == confirmPassword {
+                                    viewModel.signUp(email: email, password: password, authState: authState)
+                                } else {
+                                    viewModel.errorMessage = "Passwords do not match"
+                                    isProcessing = false
+                                }
+                            } else {
+                                viewModel.login(email: email, password: password, authState: authState)
+                            }
+                        },
+                        onToggleSignUp: {
+                            isSignUp.toggle()
+                            viewModel.resetFields()
                             isProcessing = false
+                        },
+                        onForgotPassword: { showingResetPassword = true },
+                        onGuestAccess: {
+                            viewModel.continueAsGuest(authState: authState)
                         }
                     )
                 }
-                .onAppear {
-                    print("AuthView: Appeared, authState isAuthenticated: \(authState.isAuthenticated)")
-                }
-                .onChange(of: email) { _, _ in // Updated to new syntax
-                    viewModel.errorMessage = nil
-                    isProcessing = false
-                }
-                .onChange(of: isSignUp) { _, _ in // Updated to new syntax
-                    viewModel.errorMessage = nil
-                    isProcessing = false
-                }
-                .onChange(of: viewModel.isAuthenticated) { _, newValue in // Updated to new syntax
-                    print("AuthView: isAuthenticated changed to \(newValue)")
-                    if newValue {
-                        authState.updateAuthenticationState(isAuthenticated: true)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, geometry.size.width > 600 ? 40 : 24)
+            }
+            .background(Color.white.ignoresSafeArea())
+            .sheet(isPresented: $showingResetPassword) {
+                ResetPasswordView(
+                    geometry: geometry,
+                    resetEmail: $resetEmail,
+                    isProcessing: $isProcessing,
+                    onSendReset: { viewModel.resetPassword(email: resetEmail) },
+                    onCancel: {
+                        showingResetPassword = false
+                        resetEmail = ""
+                        isProcessing = false
                     }
+                )
+            }
+            .onAppear {
+                print("AuthView: Appeared, authState isAuthenticated: \(authState.isAuthenticated), isGuest: \(authState.isGuest)")
+            }
+            .onChange(of: email) { _, _ in
+                viewModel.errorMessage = nil
+                isProcessing = false
+            }
+            .onChange(of: isSignUp) { _, _ in
+                viewModel.errorMessage = nil
+                isProcessing = false
+            }
+            .onChange(of: viewModel.isAuthenticated) { _, newValue in
+                print("AuthView: isAuthenticated changed to \(newValue)")
+                if newValue {
+                    authState.updateAuthenticationState(isAuthenticated: true, isGuest: false)
                 }
-                .onChange(of: viewModel.errorMessage) { _, _ in // Updated to new syntax
-                    isProcessing = false
+            }
+            .onChange(of: viewModel.isGuest) { _, newValue in
+                print("AuthView: isGuest changed to \(newValue)")
+                if newValue {
+                    authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
                 }
+            }
+            .onChange(of: viewModel.errorMessage) { _, _ in
+                isProcessing = false
             }
         }
     }
@@ -99,12 +118,12 @@ struct AuthView: View {
 struct LogoView: View {
     let geometry: GeometryProxy
     var body: some View {
-        Image("dailybiblelogo")
+        Image("CloserToChristLogo") // Update to "dailybiblelogo" if needed
             .resizable()
             .scaledToFit()
             .frame(maxWidth: min(geometry.size.width * 0.4, 200))
             .padding(.top, geometry.size.width > 600 ? 40 : 24)
-            .accessibilityLabel("dailybiblelogo")
+            .accessibilityLabel("Closer to Christ Logo")
     }
 }
 
@@ -188,6 +207,7 @@ struct ActionButtonsView: View {
     let onAction: () -> Void
     let onToggleSignUp: () -> Void
     let onForgotPassword: () -> Void
+    let onGuestAccess: () -> Void
 
     var body: some View {
         VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
@@ -211,6 +231,14 @@ struct ActionButtonsView: View {
             .foregroundColor(.blue)
             .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
             .accessibilityLabel(isSignUp ? "Switch to Sign In" : "Switch to Sign Up")
+
+            Button("Continue as Guest") {
+                onGuestAccess()
+            }
+            .font(.system(.body, design: .default, weight: .regular))
+            .foregroundColor(.blue)
+            .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
+            .accessibilityLabel("Continue as Guest")
 
             Button("Forgot Password?") {
                 onForgotPassword()

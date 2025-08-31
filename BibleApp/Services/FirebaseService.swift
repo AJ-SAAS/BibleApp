@@ -40,4 +40,23 @@ class FirebaseService {
             }
         }
     }
+    
+    func deleteAccount(completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let user = Auth.auth().currentUser else {
+            print("Delete account error: No user is currently signed in")
+            completion(.failure(NSError(domain: "NoUser", code: -1, userInfo: [NSLocalizedDescriptionKey: "No user is signed in."])))
+            return
+        }
+
+        print("Attempting to delete account for user: \(user.email ?? "Unknown")")
+        user.delete { error in
+            if let error = error {
+                print("Delete account error: \(error.localizedDescription)")
+                completion(.failure(error))
+            } else {
+                print("Account deleted successfully")
+                completion(.success(()))
+            }
+        }
+    }
 }

@@ -16,8 +16,8 @@ struct OnboardingView: View {
                     Group {
                         if currentPage == 0 {
                             OnboardingPage(
-                                title: "Welcome to Bible App!",
-                                subtitle: "Grow closer to God with daily Bible verses and tasks.",
+                                title: "Welcome to Closer to Christ",
+                                subtitle: "Your daily guide to Scripture, prayer, and purposeful living.",
                                 imageName: "book.fill",
                                 tag: 0,
                                 buttonText: "Next",
@@ -25,8 +25,8 @@ struct OnboardingView: View {
                             )
                         } else if currentPage == 1 {
                             OnboardingPage(
-                                title: "Daily Inspiration",
-                                subtitle: "Receive a new verse and task each day to inspire your faith.",
+                                title: "Fresh Scripture Every Day",
+                                subtitle: "Wake up to a new verse and a simple task designed to deepen your faith and keep God’s Word alive in your heart.",
                                 imageName: "calendar",
                                 tag: 1,
                                 buttonText: "Next",
@@ -34,8 +34,8 @@ struct OnboardingView: View {
                             )
                         } else if currentPage == 2 {
                             OnboardingPage(
-                                title: "Track Your Journey",
-                                subtitle: "Complete tasks and track your spiritual growth with our checklist.",
+                                title: "Build Lasting Habits of Faith",
+                                subtitle: "Check off daily tasks, reflect on verses, and watch your spiritual life grow one step at a time.",
                                 imageName: "checkmark.circle.fill",
                                 tag: 2,
                                 buttonText: "Next",
@@ -43,8 +43,8 @@ struct OnboardingView: View {
                             )
                         } else if currentPage == 3 {
                             OnboardingPage(
-                                title: "Begin Your Journey",
-                                subtitle: "Start your daily devotion today and grow closer to God!",
+                                title: "Your Walk with Christ Starts Here",
+                                subtitle: "Begin your daily devotion today and see how one small step draws you closer to Him.",
                                 imageName: "book.open.fill",
                                 tag: 3,
                                 buttonText: "Get Started",

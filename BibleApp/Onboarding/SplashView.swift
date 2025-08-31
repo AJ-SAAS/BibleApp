@@ -26,25 +26,27 @@ struct SplashView: View {
                     Color.white
                         .ignoresSafeArea()
                     
-                    VStack {
+                    VStack(spacing: 16) {
                         Image("dailybiblelogo") // Updated to match AuthView
                             .resizable()
                             .scaledToFit()
                             .frame(height: 100)
-                            .accessibilityLabel("dailybiblelogo")
+                            .accessibilityLabel("Closer to Christ App Logo")
                         
-                        Text("Bible App")
+                        Text("Closer to Christ")
                             .font(.custom("Georgia", size: 36))
                             .fontWeight(.bold)
                             .foregroundColor(.black)
                         
-                        Text("Grow Closer to God Daily")
+                        Text("Begin each day with God’s Word and purpose.")
                             .font(.system(size: 16, weight: .medium, design: .serif))
                             .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
                     }
                     .opacity(opacity)
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Bible App: Grow Closer to God Daily")
+                    .accessibilityLabel("Closer to Christ. Begin each day with God’s Word and purpose.")
                 }
                 .onAppear {
                     withAnimation(.easeIn(duration: 1.0)) {
