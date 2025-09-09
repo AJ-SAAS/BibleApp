@@ -94,13 +94,11 @@ struct AuthView: View {
                     isProcessing = false
                 }
                 .onChange(of: viewModel.isAuthenticated) { _, newValue in
-                    print("AuthView: isAuthenticated changed to \(newValue)")
                     if newValue {
                         authState.updateAuthenticationState(isAuthenticated: true, isGuest: false)
                     }
                 }
                 .onChange(of: viewModel.isGuest) { _, newValue in
-                    print("AuthView: isGuest changed to \(newValue)")
                     if newValue {
                         authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
                     }
@@ -137,13 +135,25 @@ struct FormView: View {
     let errorMessage: String?
 
     var body: some View {
-        VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
-            Text(isSignUp ? "Create Account" : "Sign In")
+        VStack(spacing: geometry.size.width > 600 ? 20 : 16) {
+            // Title
+            Text(isSignUp ? "Get Started" : "Sign In")
                 .font(.system(.largeTitle, design: .default, weight: .bold))
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
+            
+            // Tagline
+            if isSignUp {
+                Text("Closer to Christ app helps you take small steps in faith daily.")
+                    .font(.system(.body, design: .default, weight: .regular))
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
+                    .padding(.bottom, 8)
+            }
 
+            // Email Field
             TextField("Email", text: $email)
                 .textContentType(.emailAddress)
                 .keyboardType(.emailAddress)
@@ -158,6 +168,7 @@ struct FormView: View {
                 .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
                 .accessibilityLabel("Email")
 
+            // Password Field
             SecureField("Password", text: $password)
                 .textContentType(isSignUp ? .newPassword : .password)
                 .disableAutocorrection(true)
@@ -170,6 +181,7 @@ struct FormView: View {
                 .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
                 .accessibilityLabel("Password")
 
+            // Confirm Password Field
             if isSignUp {
                 SecureField("Confirm Password", text: $confirmPassword)
                     .textContentType(.newPassword)
@@ -184,6 +196,7 @@ struct FormView: View {
                     .accessibilityLabel("Confirm Password")
             }
 
+            // Error Message
             if let error = errorMessage {
                 Text(error)
                     .font(.system(.subheadline, design: .default, weight: .regular))
@@ -210,7 +223,7 @@ struct ActionButtonsView: View {
 
     var body: some View {
         VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
-            Button(isSignUp ? "Sign Up" : "Sign In") {
+            Button(isSignUp ? "Get Started" : "Sign In") {
                 onAction()
             }
             .font(.system(.headline, design: .default, weight: .semibold))
@@ -221,7 +234,7 @@ struct ActionButtonsView: View {
             .cornerRadius(8)
             .disabled(email.isEmpty || password.isEmpty || (isSignUp && confirmPassword.isEmpty) || isProcessing)
             .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
-            .accessibilityLabel(isSignUp ? "Sign Up" : "Sign In")
+            .accessibilityLabel(isSignUp ? "Get Started" : "Sign In")
 
             Button(isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up") {
                 onToggleSignUp()
