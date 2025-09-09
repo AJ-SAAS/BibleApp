@@ -3,15 +3,15 @@ import FirebaseAuth
 
 struct SettingsView: View {
     @EnvironmentObject var authState: AuthenticationState
-    @StateObject private var viewModel = AuthViewModel() // Added for account deletion
+    @StateObject private var viewModel = AuthViewModel()
     @State private var name: String = ""
     @State private var ageRange: String = "18-24"
     @State private var email: String = ""
     @State private var denomination: String = ""
     @State private var church: String = ""
-    @State private var showDeleteConfirmation: Bool = false // Added for confirmation alert
-    @State private var deletionError: String? // Added for error handling
-    @State private var isDeleting: Bool = false // Added for loading state
+    @State private var showDeleteConfirmation: Bool = false
+    @State private var deletionError: String?
+    @State private var isDeleting: Bool = false
     
     let ageRanges = ["13-17", "18-24", "25-34", "35-44", "45-54", "55+"]
     
@@ -28,7 +28,6 @@ struct SettingsView: View {
     private let churchKey = "UserChurch"
     
     init() {
-        // Load saved values from UserDefaults
         _name = State(initialValue: UserDefaults.standard.string(forKey: nameKey) ?? "")
         _ageRange = State(initialValue: UserDefaults.standard.string(forKey: ageRangeKey) ?? "18-24")
         _email = State(initialValue: UserDefaults.standard.string(forKey: emailKey) ?? (Auth.auth().currentUser?.email ?? ""))
@@ -80,9 +79,8 @@ struct SettingsView: View {
                                     try Auth.auth().signOut()
                                     authState.updateAuthenticationState(isAuthenticated: false, isGuest: false)
                                     resetUserDefaults()
-                                    print("SettingsView: Signed out successfully")
+                                    UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
                                 } catch {
-                                    print("SettingsView: Sign-out error: \(error.localizedDescription)")
                                     deletionError = error.localizedDescription
                                 }
                             }) {
@@ -115,7 +113,7 @@ struct SettingsView: View {
                             Button(action: {
                                 authState.updateAuthenticationState(isAuthenticated: false, isGuest: false)
                                 resetUserDefaults()
-                                print("SettingsView: Guest signed out, returning to AuthView")
+                                UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
                             }) {
                                 Text("Sign In / Sign Up")
                                     .foregroundStyle(.blue)
@@ -140,6 +138,7 @@ struct SettingsView: View {
                     }
                 }
                 .navigationTitle("Settings")
+                .navigationBarBackButtonHidden(true)
                 .background(Color.white)
                 .scrollContentBackground(.hidden)
                 .alert("Delete Account", isPresented: $showDeleteConfirmation) {
@@ -153,11 +152,10 @@ struct SettingsView: View {
                             switch result {
                             case .success:
                                 resetUserDefaults()
-                                print("SettingsView: Account deleted successfully")
+                                UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
                                 deletionError = nil
                             case .failure(let error):
                                 deletionError = error.localizedDescription
-                                print("SettingsView: Account deletion error: \(error.localizedDescription)")
                             }
                             showDeleteConfirmation = false
                         }
@@ -175,7 +173,6 @@ struct SettingsView: View {
         userDefaults.removeObject(forKey: emailKey)
         userDefaults.removeObject(forKey: denominationKey)
         userDefaults.removeObject(forKey: churchKey)
-        // Clear DevotionViewModel-related data
         userDefaults.removeObject(forKey: "ChecklistTasks")
         userDefaults.removeObject(forKey: "CompletedDays")
         userDefaults.removeObject(forKey: "CompletedTaskCount")

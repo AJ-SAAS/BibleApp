@@ -6,8 +6,15 @@ struct HomeView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let gridSpacing = geometry.size.width / 80
+            let topPadding = geometry.size.width / 40
+            let circleSize = geometry.size.width / 15
+            let cardWidth = min(geometry.size.width * 0.9, 600)
+            let horizontalPadding = (geometry.size.width - cardWidth) / 2
+            let spacingVStack: CGFloat = geometry.size.width > 600 ? 24 : 20
+
             ScrollView {
-                VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
+                VStack(spacing: spacingVStack) {
                     // Day + Monthly Theme
                     VStack(alignment: .leading, spacing: 4) {
                         Text(dayOfWeekString())
@@ -18,32 +25,31 @@ struct HomeView: View {
                             .font(.system(size: 14, weight: .medium, design: .serif))
                             .foregroundColor(.gray.opacity(0.8))
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: cardWidth, alignment: .leading)
                     
                     // Day Tracker
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: geometry.size.width / 80) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: gridSpacing) {
                         ForEach(1...7, id: \.self) { day in
-                            VStack(spacing: geometry.size.width / 80) {
+                            VStack(spacing: gridSpacing) {
                                 Text(dayOfWeekLetter(day))
                                     .font(.system(size: geometry.size.width / 30 + 1, weight: .bold))
                                     .lineLimit(1)
                                 
                                 Circle()
                                     .fill(viewModel.completedDays.contains(day) ? Color.green : Color.gray)
-                                    .frame(width: geometry.size.width / 15, height: geometry.size.width / 15)
+                                    .frame(width: circleSize, height: circleSize)
                                     .accessibilityLabel("Day \(dayOfWeekLetter(day)): \(viewModel.completedDays.contains(day) ? "Completed" : "Not completed")")
                             }
                         }
                     }
-                    .padding(.horizontal, geometry.size.width / 16)
-                    .padding(.vertical, geometry.size.width / 40)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.vertical, topPadding)
                     
                     // Verse of the Day Label
                     Text("VERSE OF THE DAY")
                         .font(.custom("OpenSans-Medium", size: 16))
                         .foregroundColor(.gray)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 8)
+                        .frame(maxWidth: cardWidth, alignment: .leading)
                     
                     // Verse Card
                     ZStack {
@@ -64,10 +70,7 @@ struct HomeView: View {
                         }
                         .padding(20)
                     }
-                    .frame(maxWidth: 600)
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Verse: \(viewModel.currentDevotion.verse), \(viewModel.currentDevotion.reference)")
+                    .frame(maxWidth: cardWidth)
                     
                     // Task Card
                     ZStack {
@@ -94,41 +97,55 @@ struct HomeView: View {
                                 .font(.system(size: 18, weight: .regular, design: .serif))
                                 .foregroundColor(.black)
                                 .multilineTextAlignment(.leading)
-                                .frame(maxWidth: 600, alignment: .leading)
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: cardWidth, alignment: .leading)
                         }
                         .padding(20)
                     }
-                    .frame(maxWidth: 600)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, geometry.size.width / 80)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Task of the Day: \(viewModel.currentDevotion.task)")
+                    .frame(maxWidth: cardWidth)
+                    .padding(.top, topPadding)
                     
                     // To-Do List
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .center, spacing: 12) {
                         Text("TODAY'S CHECKLIST")
                             .font(.custom("OpenSans-Medium", size: 16))
                             .foregroundColor(.gray)
                             .padding(.bottom, 4)
+                            .frame(maxWidth: cardWidth, alignment: .leading)
                         
                         ForEach(viewModel.tasks.indices, id: \.self) { index in
+                            let task = viewModel.tasks[index]
                             Button(action: {
                                 viewModel.toggleTaskCompletion(at: index)
                             }) {
                                 HStack {
-                                    Image(systemName: viewModel.tasks[index].isCompleted ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(viewModel.tasks[index].isCompleted ? .green : .gray)
+                                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(task.isCompleted ? .green : .gray)
                                         .font(.title3)
-                                    Text(viewModel.tasks[index].title)
+                                    Text(task.title)
                                         .foregroundColor(.black)
                                         .font(.system(size: 18, weight: .regular, design: .serif))
                                     Spacer()
                                 }
+                                .frame(maxWidth: cardWidth, alignment: .leading)
                             }
                             .buttonStyle(PlainButtonStyle())
-                            .accessibilityLabel(viewModel.tasks[index].title + (viewModel.tasks[index].isCompleted ? ", completed" : ", not completed"))
+                            .accessibilityLabel(task.title + (task.isCompleted ? ", completed" : ", not completed"))
                         }
+                        
+                        // Progress Bar (starts from left)
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: cardWidth, height: 8)
+                            
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.yellow)
+                                .frame(width: CGFloat(viewModel.completedTaskCount) / 3 * cardWidth, height: 8)
+                                .animation(.easeInOut(duration: 0.2), value: viewModel.completedTaskCount)
+                        }
+                        .frame(width: cardWidth)
+                        .padding(.top, 12)
+                        .accessibilityLabel("Task progress: \(viewModel.completedTaskCount) out of 3 tasks completed")
                     }
                     .padding(.vertical, 12)
                     
@@ -150,22 +167,19 @@ struct HomeView: View {
                             )
                         )
                         .cornerRadius(8)
-                        .frame(maxWidth: .infinity)
                         .padding(.top, 12)
-                        .padding(.bottom, 60)
+                        .padding(.bottom, 20)
                         .animation(.easeInOut(duration: 0.2), value: viewModel.isTaskCompleted)
                         .animation(.easeInOut(duration: 0.2), value: viewModel.completedTaskCount)
                         .accessibilityLabel(viewModel.isTaskCompleted && viewModel.completedTaskCount == 3 ? "All tasks completed and logged" : "Achieved \(viewModel.completedTaskCount) of 3 tasks")
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.horizontal, horizontalPadding)
                 .padding(.top, geometry.size.width > 600 ? 40 : 24)
             }
             .scrollIndicators(.hidden)
-            .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 50)
-            }
             .background(Color.white)
+            .navigationBarBackButtonHidden(true)
         }
         .onAppear {
             viewModel.loadCompletedDaysForWeek()
@@ -191,9 +205,9 @@ extension Color {
         Scanner(string: hex).scanHexInt64(&int)
         let a, r, g, b: UInt64
         switch hex.count {
-        case 6: // RGB (24-bit)
+        case 6:
             (r, g, b, a) = ((int >> 16) & 255, (int >> 8) & 255, int & 255, 255)
-        case 8: // RGBA (32-bit)
+        case 8:
             (r, g, b, a) = ((int >> 24) & 255, (int >> 16) & 255, (int >> 8) & 255, int & 255)
         default:
             (r, g, b, a) = (0, 0, 0, 255)
@@ -208,7 +222,7 @@ extension Color {
     }
 }
 
-#Preview("iPhone 14") {
+#Preview("iPhone 11") {
     HomeView()
         .environmentObject(AuthenticationState())
         .environmentObject(DevotionViewModel())

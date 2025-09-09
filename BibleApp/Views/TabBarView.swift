@@ -8,7 +8,7 @@ struct TabBarView: View {
             NavigationStack {
                 HomeView()
                     .environmentObject(authState)
-                    .navigationTitle("Home")
+                    .navigationBarBackButtonHidden(true)
             }
             .tabItem {
                 Label("Home", systemImage: "house.fill")
@@ -20,6 +20,7 @@ struct TabBarView: View {
                 SettingsView()
                     .environmentObject(authState)
                     .navigationTitle("Settings")
+                    .navigationBarBackButtonHidden(true)
             }
             .tabItem {
                 Label("Settings", systemImage: "gear")
