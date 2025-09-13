@@ -17,7 +17,7 @@ struct AuthView: View {
                 .navigationBarBackButtonHidden(true)
         }
     }
-    
+
     @ViewBuilder
     private func contentView() -> some View {
         GeometryReader { geometry in

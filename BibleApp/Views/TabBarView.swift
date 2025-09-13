@@ -2,7 +2,7 @@ import SwiftUI
 
 struct TabBarView: View {
     @EnvironmentObject var authState: AuthenticationState
-    
+
     var body: some View {
         TabView {
             NavigationStack {

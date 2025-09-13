@@ -185,12 +185,12 @@ struct HomeView: View {
             viewModel.loadCompletedDaysForWeek()
         }
     }
-    
+
     private func dayOfWeekLetter(_ day: Int) -> String {
         let days = ["M", "T", "W", "T", "F", "S", "S"]
         return days[day - 1]
     }
-    
+
     private func dayOfWeekString() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"

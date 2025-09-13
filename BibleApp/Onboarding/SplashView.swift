@@ -6,7 +6,7 @@ struct SplashView: View {
     @State private var isActive = false
     @State private var currentTextIndex = 0
     @State private var offsetX: CGFloat = UIScreen.main.bounds.width
-    @State private var fade = false
+    @State private var opacity: Double = 0
 
     let texts = [
         "start your day with scripture",
@@ -29,16 +29,20 @@ struct SplashView: View {
             } else {
                 GeometryReader { geo in
                     ZStack {
-                        Color(red: 55/255, green: 4/255, blue: 64/255)
+                        Image("back1")
+                            .resizable()
+                            .scaledToFill()
                             .ignoresSafeArea()
 
                         Image("dailybiblelogo")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 165, height: 165)
+                            .clipShape(RoundedRectangle(cornerRadius: 40)) // Added to curve edges
                             .position(x: geo.size.width / 2, y: geo.size.height * 0.32)
                             .accessibilityLabel("Closer to Christ App Logo")
 
+                        // Combined Text + Border container
                         ZStack {
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(Color.white, lineWidth: 1)
@@ -49,38 +53,48 @@ struct SplashView: View {
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 32)
-                                .offset(x: offsetX)
                         }
+                        .offset(x: offsetX)
+                        .opacity(opacity)
                         .position(x: geo.size.width / 2, y: geo.size.height * 0.6)
                     }
                     .onAppear {
-                        animateTexts()
+                        animateTextWithBorder()
                     }
                 }
             }
         }
     }
 
-    private func animateTexts() {
+    private func animateTextWithBorder() {
         guard currentTextIndex < texts.count else { return }
 
+        // Start offscreen right
         offsetX = UIScreen.main.bounds.width
+        opacity = 0
+
+        // Animate in
         withAnimation(.easeOut(duration: 0.5)) {
             offsetX = 0
+            opacity = 1
         }
 
+        // Hold for 1.2s
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            // If not the last text, slide out and continue
             if self.currentTextIndex < self.texts.count - 1 {
                 withAnimation(.easeIn(duration: 0.5)) {
                     offsetX = -UIScreen.main.bounds.width
+                    opacity = 0
                 }
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     self.currentTextIndex += 1
-                    animateTexts()
+                    animateTextWithBorder()
                 }
             } else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                // Last text: keep it for 0.7s then proceed
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                     withAnimation(.easeOut(duration: 0.6)) {
                         isActive = true
                     }

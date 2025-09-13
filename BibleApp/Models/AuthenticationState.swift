@@ -12,12 +12,12 @@ class AuthenticationState: ObservableObject {
             self.isGuest = user == nil && self.isGuest
         }
     }
-    
+
     func updateAuthenticationState(isAuthenticated: Bool, isGuest: Bool = false) {
         self.isAuthenticated = isAuthenticated
         self.isGuest = isGuest
     }
-    
+
     deinit {
         if let handle = authListenerHandle {
             Auth.auth().removeStateDidChangeListener(handle)

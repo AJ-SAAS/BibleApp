@@ -7,13 +7,13 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isAuthenticated: Bool = false
     @Published var isGuest: Bool = false
-    
+
     private let firebaseService: FirebaseService
-    
+
     init(firebaseService: FirebaseService = FirebaseService()) {
         self.firebaseService = firebaseService
     }
-    
+
     func signUp(email: String, password: String, authState: AuthenticationState) {
         guard !email.isEmpty, !password.isEmpty else {
             errorMessage = "Please fill in all fields."
@@ -49,7 +49,7 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-    
+
     func login(email: String, password: String, authState: AuthenticationState) {
         guard !email.isEmpty, !password.isEmpty else {
             errorMessage = "Please fill in all fields."
@@ -80,14 +80,14 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-    
+
     func continueAsGuest(authState: AuthenticationState) {
         errorMessage = nil
         isGuest = true
         authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
         print("AuthViewModel: Continuing as guest")
     }
-    
+
     func resetPassword(email: String) {
         guard !email.isEmpty else {
             errorMessage = "Please enter an email address."
@@ -117,11 +117,11 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-    
+
     func resetFields() {
         errorMessage = nil
     }
-    
+
     func deleteAccount(authState: AuthenticationState, completion: @escaping (Result<Void, Error>) -> Void) {
         guard !isGuest else {
             errorMessage = "Guest accounts cannot be deleted."
