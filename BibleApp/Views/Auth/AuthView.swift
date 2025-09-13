@@ -10,102 +10,118 @@ struct AuthView: View {
     @State private var showingResetPassword: Bool = false
     @State private var resetEmail: String = ""
     @State private var isProcessing: Bool = false
+    @State private var navigateToOnboardingQuestions: Bool = false
 
     var body: some View {
         NavigationStack {
             contentView()
                 .navigationBarBackButtonHidden(true)
+                .navigationDestination(isPresented: $navigateToOnboardingQuestions) {
+                    OnboardingQuestionsView()
+                        .environmentObject(authState)
+                        .navigationBarBackButtonHidden(true)
+                }
         }
     }
 
     @ViewBuilder
     private func contentView() -> some View {
         GeometryReader { geometry in
-            if authState.isAuthenticated || authState.isGuest {
-                TabBarView()
-                    .environmentObject(authState)
-                    .navigationBarBackButtonHidden(true)
-            } else {
-                ScrollView {
-                    VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
-                        LogoView(geometry: geometry)
-                        FormView(
-                            geometry: geometry,
-                            email: $email,
-                            password: $password,
-                            confirmPassword: $confirmPassword,
-                            isSignUp: isSignUp,
-                            errorMessage: viewModel.errorMessage
-                        )
-                        ActionButtonsView(
-                            geometry: geometry,
-                            isSignUp: isSignUp,
-                            isProcessing: isProcessing,
-                            email: email,
-                            password: password,
-                            confirmPassword: confirmPassword,
-                            onAction: {
-                                isProcessing = true
-                                if isSignUp {
-                                    if password == confirmPassword {
-                                        viewModel.signUp(email: email, password: password, authState: authState)
-                                    } else {
-                                        viewModel.errorMessage = "Passwords do not match"
-                                        isProcessing = false
-                                    }
-                                } else {
-                                    viewModel.login(email: email, password: password, authState: authState)
-                                }
-                            },
-                            onToggleSignUp: {
-                                isSignUp.toggle()
-                                viewModel.resetFields()
-                                isProcessing = false
-                            },
-                            onForgotPassword: { showingResetPassword = true }
-                        )
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, geometry.size.width > 600 ? 40 : 24)
-                }
-                .background(Color.white.ignoresSafeArea())
-                .sheet(isPresented: $showingResetPassword) {
-                    ResetPasswordView(
+            ScrollView {
+                VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
+                    LogoView(geometry: geometry)
+                    FormView(
                         geometry: geometry,
-                        resetEmail: $resetEmail,
-                        isProcessing: $isProcessing,
-                        onSendReset: { viewModel.resetPassword(email: resetEmail) },
-                        onCancel: {
-                            showingResetPassword = false
-                            resetEmail = ""
+                        email: $email,
+                        password: $password,
+                        confirmPassword: $confirmPassword,
+                        isSignUp: isSignUp,
+                        errorMessage: viewModel.errorMessage
+                    )
+                    ActionButtonsView(
+                        geometry: geometry,
+                        isSignUp: isSignUp,
+                        isProcessing: isProcessing,
+                        email: email,
+                        password: password,
+                        confirmPassword: confirmPassword,
+                        onAction: {
+                            isProcessing = true
+                            if isSignUp {
+                                if password == confirmPassword {
+                                    viewModel.signUp(email: email, password: password, authState: authState)
+                                } else {
+                                    viewModel.errorMessage = "Passwords do not match"
+                                    isProcessing = false
+                                }
+                            } else {
+                                viewModel.login(email: email, password: password, authState: authState)
+                            }
+                        },
+                        onToggleSignUp: {
+                            isSignUp.toggle()
+                            viewModel.resetFields()
                             isProcessing = false
-                        }
+                        },
+                        onForgotPassword: { showingResetPassword = true }
                     )
                 }
-                .onAppear {
-                    print("AuthView: Appeared, authState isAuthenticated: \(authState.isAuthenticated), isGuest: \(authState.isGuest)")
-                }
-                .onChange(of: email) { _, _ in
-                    viewModel.errorMessage = nil
-                    isProcessing = false
-                }
-                .onChange(of: isSignUp) { _, _ in
-                    viewModel.errorMessage = nil
-                    isProcessing = false
-                }
-                .onChange(of: viewModel.isAuthenticated) { _, newValue in
-                    if newValue {
-                        authState.updateAuthenticationState(isAuthenticated: true, isGuest: false)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, geometry.size.width > 600 ? 40 : 24)
+            }
+            .background(Color.white.ignoresSafeArea())
+            .sheet(isPresented: $showingResetPassword) {
+                ResetPasswordView(
+                    geometry: geometry,
+                    resetEmail: $resetEmail,
+                    isProcessing: $isProcessing,
+                    onSendReset: { viewModel.resetPassword(email: resetEmail) },
+                    onCancel: {
+                        showingResetPassword = false
+                        resetEmail = ""
+                        isProcessing = false
+                    }
+                )
+            }
+            .onAppear {
+                print("AuthView: Appeared, authState isAuthenticated: \(authState.isAuthenticated), isGuest: \(authState.isGuest)")
+            }
+            .onChange(of: email) { _, _ in
+                viewModel.errorMessage = nil
+                isProcessing = false
+            }
+            .onChange(of: isSignUp) { _, _ in
+                viewModel.errorMessage = nil
+                isProcessing = false
+            }
+            .onChange(of: viewModel.isAuthenticated) { _, newValue in
+                if newValue {
+                    if isSignUp {
+                        print("AuthView: Sign-up successful, navigating to OnboardingQuestionsView")
+                        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                        UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
+                        navigateToOnboardingQuestions = true
+                    } else {
+                        print("AuthView: Login successful, checking onboarding status")
+                        if !UserDefaults.standard.bool(forKey: "hasCompletedOnboardingQuestions") {
+                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                            navigateToOnboardingQuestions = true
+                        } else {
+                            authState.updateAuthenticationState(isAuthenticated: true, isGuest: false)
+                        }
                     }
                 }
-                .onChange(of: viewModel.isGuest) { _, newValue in
-                    if newValue {
-                        authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
-                    }
+            }
+            .onChange(of: viewModel.isGuest) { _, newValue in
+                if newValue {
+                    print("AuthView: Guest mode, navigating to TabBarView")
+                    UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                    UserDefaults.standard.set(true, forKey: "hasCompletedOnboardingQuestions")
+                    authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
                 }
-                .onChange(of: viewModel.errorMessage) { _, _ in
-                    isProcessing = false
-                }
+            }
+            .onChange(of: viewModel.errorMessage) { _, _ in
+                isProcessing = false
             }
         }
     }

@@ -17,7 +17,11 @@ struct SplashView: View {
     var body: some View {
         Group {
             if isActive {
-                if UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") || authState.isAuthenticated || authState.isGuest {
+                if authState.isAuthenticated && !UserDefaults.standard.bool(forKey: "hasCompletedOnboardingQuestions") {
+                    OnboardingQuestionsView()
+                        .environmentObject(authState)
+                        .navigationBarBackButtonHidden(true)
+                } else if authState.isAuthenticated || authState.isGuest {
                     TabBarView()
                         .environmentObject(authState)
                         .navigationBarBackButtonHidden(true)
@@ -38,7 +42,7 @@ struct SplashView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 165, height: 165)
-                            .clipShape(RoundedRectangle(cornerRadius: 40)) // Added to curve edges
+                            .clipShape(RoundedRectangle(cornerRadius: 40))
                             .position(x: geo.size.width / 2, y: geo.size.height * 0.32)
                             .accessibilityLabel("Closer to Christ App Logo")
 

@@ -9,7 +9,11 @@ struct OnboardingView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if authState.isAuthenticated || authState.isGuest {
+                if authState.isAuthenticated && !UserDefaults.standard.bool(forKey: "hasCompletedOnboardingQuestions") {
+                    OnboardingQuestionsView()
+                        .environmentObject(authState)
+                        .navigationBarBackButtonHidden(true)
+                } else if authState.isAuthenticated || authState.isGuest {
                     TabBarView()
                         .environmentObject(authState)
                         .navigationBarBackButtonHidden(true)
@@ -18,6 +22,8 @@ struct OnboardingView: View {
                         onContinueAsGuest: {
                             showMissionScreen = false
                             authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
+                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboardingQuestions")
                         },
                         onSignIn: {
                             navigateToAuth = true
@@ -75,6 +81,7 @@ struct OnboardingView: View {
                                         buttonText: "Get Started",
                                         onButtonTap: {
                                             UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboardingQuestions")
                                             authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
                                         }
                                     )

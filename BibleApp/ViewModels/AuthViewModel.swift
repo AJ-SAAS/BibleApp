@@ -39,9 +39,10 @@ class AuthViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success:
-                    print("AuthViewModel: Sign-up successful, updating isAuthenticated")
+                    print("AuthViewModel: Sign-up successful, updating isAuthenticated for navigation to OnboardingQuestionsView")
                     self?.isAuthenticated = true
                     authState.updateAuthenticationState(isAuthenticated: true, isGuest: false)
+                    // Navigation to OnboardingQuestionsView is handled in AuthView
                 case .failure(let error):
                     print("AuthViewModel: Sign-up failed with error: \(error.localizedDescription)")
                     self?.errorMessage = error.localizedDescription
