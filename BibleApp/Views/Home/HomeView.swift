@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var authState: AuthenticationState
     @StateObject private var viewModel = DevotionViewModel()
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         GeometryReader { geometry in
@@ -21,7 +22,7 @@ struct HomeView: View {
                             .font(.system(size: 28, weight: .bold, design: .serif))
                             .foregroundColor(.black)
                         
-                        Text("\(viewModel.currentMonthTheme)")
+                        Text(viewModel.currentMonthTheme)
                             .font(.system(size: 14, weight: .medium, design: .serif))
                             .foregroundColor(.gray.opacity(0.8))
                     }
@@ -132,7 +133,7 @@ struct HomeView: View {
                             .accessibilityLabel(task.title + (task.isCompleted ? ", completed" : ", not completed"))
                         }
                         
-                        // Progress Bar (starts from left)
+                        // Progress Bar
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color.gray.opacity(0.3))
@@ -180,9 +181,19 @@ struct HomeView: View {
             .scrollIndicators(.hidden)
             .background(Color.white)
             .navigationBarBackButtonHidden(true)
+            .sheet(isPresented: $viewModel.showCompletionView) {
+                CompletionView(onDismiss: {
+                    viewModel.showCompletionView = false
+                    print("HomeView: CompletionView dismissed")
+                })
+            }
         }
         .onAppear {
             viewModel.loadCompletedDaysForWeek()
+            print("HomeView: onAppear, showCompletionView: \(viewModel.showCompletionView)")
+        }
+        .onChange(of: viewModel.currentDevotion) { _, _ in
+            print("HomeView: currentDevotion changed")
         }
     }
 

@@ -15,32 +15,33 @@ class DevotionViewModel: ObservableObject {
     @Published var isTaskCompleted: Bool = false
     @Published var currentMonthTheme: String = ""
     @Published var currentDate: Date = Date()
-    
+    @Published var showCompletionView: Bool = false // For pop-up
+
     private let userDefaults = UserDefaults.standard
     private let tasksKey = "ChecklistTasks"
     private let completedDaysKey = "CompletedDays"
     private let taskCountKey = "CompletedTaskCount"
     private let weekKey = "CurrentWeek"
-    
+
     struct Task: Identifiable {
         let id = UUID()
         let title: String
         var isCompleted: Bool
     }
-    
+
     init() {
         fetchDailyContent()
         loadCompletedDaysForWeek()
     }
-    
+
     func fetchDailyContent() {
         let calendar = Calendar.current
         let month = calendar.component(.month, from: currentDate)
         let day = calendar.component(.day, from: currentDate)
-        
+
         // Set monthly theme from DevotionData
         currentMonthTheme = DevotionData.monthlyThemes[month] ?? "Faith"
-        
+
         // Fetch devotion for current month and day
         if let devotion = DevotionData.devotions.first(where: { $0.month == month && $0.day == day }) {
             currentDevotion = devotion
@@ -53,11 +54,11 @@ class DevotionViewModel: ObservableObject {
                 task: "Reflect on God's guidance today."
             )
         }
-        
+
         // Load tasks for the current day
         loadTasksForCurrentDay()
     }
-    
+
     func toggleTaskCompletion(at index: Int? = nil) {
         if let index = index {
             tasks[index].isCompleted.toggle()
@@ -68,14 +69,21 @@ class DevotionViewModel: ObservableObject {
         updateCompletedTaskCount()
         saveProgress()
         checkAllTasksCompleted()
+        // Trigger pop-up if all tasks are completed
+        if completedTaskCount == tasks.count {
+            showCompletionView = true
+            print("DevotionViewModel: All tasks completed, showCompletionView set to true")
+        } else {
+            showCompletionView = false // Ensure pop-up doesn't show if tasks are incomplete
+        }
     }
-    
+
     private func updateCompletedTaskCount() {
         completedTaskCount = tasks.filter { $0.isCompleted }.count
         isTaskCompleted = completedTaskCount == tasks.count
         saveCompletedTaskCount()
     }
-    
+
     private func checkAllTasksCompleted() {
         if completedTaskCount == tasks.count {
             let calendar = Calendar.current
@@ -84,32 +92,32 @@ class DevotionViewModel: ObservableObject {
             saveCompletedDays()
         }
     }
-    
+
     private func saveProgress() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateString = dateFormatter.string(from: currentDate)
-        
+
         let progressData = tasks.map { ["title": $0.title, "isCompleted": $0.isCompleted] }
         userDefaults.set(progressData, forKey: "\(tasksKey)_\(dateString)")
         print("Progress saved locally for \(dateString)")
     }
-    
+
     private func saveCompletedDays() {
         userDefaults.set(Array(completedDays), forKey: completedDaysKey)
         print("Completed days saved locally: \(completedDays)")
     }
-    
+
     private func saveCompletedTaskCount() {
         userDefaults.set(completedTaskCount, forKey: taskCountKey)
         print("Completed task count saved locally: \(completedTaskCount)")
     }
-    
+
     func loadCompletedDaysForWeek() {
         let calendar = Calendar.current
         let currentWeek = calendar.component(.weekOfYear, from: currentDate)
         let savedWeek = userDefaults.integer(forKey: weekKey)
-        
+
         if savedWeek != currentWeek {
             completedDays = []
             tasks = [
@@ -117,6 +125,7 @@ class DevotionViewModel: ObservableObject {
                 Task(title: "Read today's Bible Verse?", isCompleted: false),
                 Task(title: "Completed the task?", isCompleted: false)
             ]
+            showCompletionView = false // Reset pop-up state
             saveCompletedDays()
             saveProgress()
             userDefaults.set(currentWeek, forKey: weekKey)
@@ -128,12 +137,12 @@ class DevotionViewModel: ObservableObject {
             loadTasksForCurrentDay()
         }
     }
-    
+
     private func loadTasksForCurrentDay() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateString = dateFormatter.string(from: currentDate)
-        
+
         if let taskData = userDefaults.array(forKey: "\(tasksKey)_\(dateString)") as? [[String: Any]] {
             tasks = taskData.enumerated().map { index, task in
                 Task(
@@ -147,6 +156,7 @@ class DevotionViewModel: ObservableObject {
                 Task(title: "Read today's Bible Verse?", isCompleted: false),
                 Task(title: "Completed the task?", isCompleted: false)
             ]
+            showCompletionView = false // Reset pop-up state
             saveProgress()
         }
         updateCompletedTaskCount()

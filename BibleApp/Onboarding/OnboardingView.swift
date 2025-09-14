@@ -5,25 +5,22 @@ struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var showMissionScreen = true
     @State private var navigateToAuth = false
+    @State private var navigateToQuestions = false
 
     var body: some View {
         NavigationStack {
             Group {
-                if authState.isAuthenticated && !UserDefaults.standard.bool(forKey: "hasCompletedOnboardingQuestions") {
-                    OnboardingQuestionsView()
-                        .environmentObject(authState)
-                        .navigationBarBackButtonHidden(true)
-                } else if authState.isAuthenticated || authState.isGuest {
-                    TabBarView()
-                        .environmentObject(authState)
-                        .navigationBarBackButtonHidden(true)
-                } else if showMissionScreen {
+                if showMissionScreen {
                     MissionScreen(
                         onContinueAsGuest: {
-                            showMissionScreen = false
+                            // Reset all relevant UserDefaults keys
+                            UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
+                            // Clear any onboarding answers to ensure clean state
+                            let keys = ["denomination", "frequency", "experience", "preference", "goal", "time", "notification"]
+                            keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
                             authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
-                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboardingQuestions")
+                            navigateToQuestions = true
+                            print("MissionScreen: Continuing as guest, hasCompletedOnboardingQuestions set to false, isGuest: \(authState.isGuest), navigateToQuestions: \(navigateToQuestions)")
                         },
                         onSignIn: {
                             navigateToAuth = true
@@ -31,6 +28,11 @@ struct OnboardingView: View {
                     )
                     .navigationDestination(isPresented: $navigateToAuth) {
                         AuthView()
+                            .environmentObject(authState)
+                            .navigationBarBackButtonHidden(true)
+                    }
+                    .navigationDestination(isPresented: $navigateToQuestions) {
+                        OnboardingQuestionsView()
                             .environmentObject(authState)
                             .navigationBarBackButtonHidden(true)
                     }
@@ -81,8 +83,12 @@ struct OnboardingView: View {
                                         buttonText: "Get Started",
                                         onButtonTap: {
                                             UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-                                            UserDefaults.standard.set(true, forKey: "hasCompletedOnboardingQuestions")
+                                            UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
+                                            let keys = ["denomination", "frequency", "experience", "preference", "goal", "time", "notification"]
+                                            keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
                                             authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
+                                            navigateToQuestions = true
+                                            print("OnboardingPage: Get Started, hasCompletedOnboardingQuestions set to false, isGuest: \(authState.isGuest), navigateToQuestions: \(navigateToQuestions)")
                                         }
                                     )
                                 }
