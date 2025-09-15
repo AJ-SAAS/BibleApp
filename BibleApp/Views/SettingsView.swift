@@ -184,7 +184,7 @@ struct SettingsView: View {
                         }
                     } else if authState.isGuest {
                         Section(header: Text("Account Info")) {
-                            Text("You are using the app as a guest. Sign in or sign up to save your profile across devices (optional).")
+                            Text("You are using the app as a guest. Sign in or sign up to save your profile across devices and unlock more features (optional).")
                                 .font(.system(.body, design: .default, weight: .regular))
                                 .foregroundColor(.gray)
                                 .accessibilityLabel("Guest mode message")

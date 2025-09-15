@@ -1,87 +1,111 @@
 import SwiftUI
-import UIKit
 
-struct ConfettiView: UIViewRepresentable {
+struct ConfettiView: View {
     @Binding var isActive: Bool
-
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        view.backgroundColor = .clear
-        
-        let emitterLayer = CAEmitterLayer()
-        context.coordinator.emitterLayer = emitterLayer
-        view.layer.addSublayer(emitterLayer)
-        
-        // Debug
-        print("ConfettiView: makeUIView, isActive: \(isActive)")
-        return view
+    @State private var particles: [Particle] = []
+    
+    struct Particle: Identifiable {
+        let id = UUID()
+        let shape: String
+        let color: Color
+        var x: CGFloat
+        var y: CGFloat
+        let velocityX: CGFloat
+        let velocityY: CGFloat
+        var rotation: Angle
+        let rotationSpeed: Double
+        let scale: CGFloat
+        var opacity: Double
     }
-
-    func updateUIView(_ uiView: UIView, context: Context) {
-        let emitterLayer = context.coordinator.emitterLayer
-        uiView.frame = uiView.superview?.bounds ?? UIScreen.main.bounds
-        emitterLayer?.frame = uiView.bounds
-        emitterLayer?.emitterPosition = CGPoint(x: uiView.bounds.midX, y: 0)
-        emitterLayer?.emitterShape = .line
-        emitterLayer?.emitterSize = CGSize(width: uiView.bounds.width, height: 1)
-        
-        // Only configure cells if not already set
-        if emitterLayer?.emitterCells == nil {
-            let shapes = ["circle", "star"]
-            let colors: [UIColor] = [.red, .blue, .green, .yellow, .purple, .white]
-            
-            let cells = shapes.flatMap { shape in
-                colors.map { color in
-                    let cell = CAEmitterCell()
-                    cell.birthRate = isActive ? 40 : 0 // Increased for visibility
-                    cell.lifetime = 5.0
-                    cell.velocity = 300
-                    cell.velocityRange = 100
-                    cell.emissionLongitude = .pi // Downward
-                    cell.emissionRange = .pi / 4
-                    cell.spin = 3
-                    cell.spinRange = 4
-                    cell.scale = 0.05
-                    cell.scaleRange = 0.02
-                    cell.yAcceleration = 200 // Stronger gravity
-                    cell.color = color.cgColor
-                    
-                    let image = UIGraphicsImageRenderer(size: CGSize(width: 10, height: 10)).image { ctx in
-                        ctx.cgContext.setFillColor(color.cgColor)
-                        if shape == "circle" {
-                            ctx.cgContext.fillEllipse(in: CGRect(x: 0, y: 0, width: 10, height: 10))
+    
+    private let colors: [Color] = [.red, .blue, .green, .yellow, .purple, .white]
+    private let shapes: [String] = ["circle", "star"]
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                ForEach(particles) { particle in
+                    Group {
+                        if particle.shape == "circle" {
+                            Circle()
+                                .fill(particle.color)
+                                .frame(width: 10 * particle.scale, height: 10 * particle.scale)
                         } else {
-                            ctx.cgContext.move(to: CGPoint(x: 5, y: 0))
-                            ctx.cgContext.addLine(to: CGPoint(x: 7, y: 3))
-                            ctx.cgContext.addLine(to: CGPoint(x: 10, y: 5))
-                            ctx.cgContext.addLine(to: CGPoint(x: 7, y: 7))
-                            ctx.cgContext.addLine(to: CGPoint(x: 5, y: 10))
-                            ctx.cgContext.addLine(to: CGPoint(x: 3, y: 7))
-                            ctx.cgContext.addLine(to: CGPoint(x: 0, y: 5))
-                            ctx.cgContext.addLine(to: CGPoint(x: 3, y: 3))
-                            ctx.cgContext.closePath()
-                            ctx.cgContext.fillPath()
+                            StarShape()
+                                .fill(particle.color)
+                                .frame(width: 10 * particle.scale, height: 10 * particle.scale)
                         }
                     }
-                    cell.contents = image.cgImage
-                    return cell
+                    .rotationEffect(particle.rotation)
+                    .opacity(particle.opacity)
+                    .position(x: particle.x, y: particle.y)
                 }
             }
-            emitterLayer?.emitterCells = cells
-        } else {
-            emitterLayer?.birthRate = isActive ? 1 : 0
+            .ignoresSafeArea()
+            .onChange(of: isActive) { _, newValue in
+                if newValue {
+                    generateParticles(in: geo.size)
+                    print("ConfettiView: isActive set to true, generated \(particles.count) particles")
+                } else {
+                    particles = []
+                    print("ConfettiView: isActive set to false, cleared particles")
+                }
+            }
+            .onAppear {
+                if isActive {
+                    generateParticles(in: geo.size)
+                    print("ConfettiView: onAppear, generated \(particles.count) particles")
+                }
+            }
         }
-        
-        // Debug
-        print("ConfettiView: updateUIView, isActive: \(isActive), bounds: \(uiView.bounds), cells: \(emitterLayer?.emitterCells?.count ?? 0)")
     }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
+    
+    private func generateParticles(in size: CGSize) {
+        particles = (0..<50).map { _ in
+            let particle = Particle(
+                shape: shapes.randomElement()!,
+                color: colors.randomElement()!,
+                x: CGFloat.random(in: 0...size.width),
+                y: -10,
+                velocityX: CGFloat.random(in: -50...50),
+                velocityY: CGFloat.random(in: 100...300),
+                rotation: .degrees(CGFloat.random(in: 0...360)),
+                rotationSpeed: Double.random(in: -4...4),
+                scale: CGFloat.random(in: 0.5...1),
+                opacity: Double.random(in: 0.5...1)
+            )
+            
+            // Schedule animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.linear(duration: 3)) {
+                    if let index = particles.firstIndex(where: { $0.id == particle.id }) {
+                        particles[index].y += particle.velocityY * 3
+                        particles[index].x += particle.velocityX * 3
+                        particles[index].rotation = .degrees(particle.rotation.degrees + particle.rotationSpeed * 3)
+                        particles[index].opacity = max(0, particle.opacity - 0.5)
+                    }
+                }
+            }
+            return particle
+        }
     }
+}
 
-    class Coordinator {
-        var emitterLayer: CAEmitterLayer?
+struct StarShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            let center = CGPoint(x: rect.midX, y: rect.midY)
+            let radius: CGFloat = rect.width / 2
+            path.move(to: CGPoint(x: center.x, y: center.y - radius))
+            for i in 1...8 {
+                let angle = CGFloat(i) * .pi / 4
+                let pointRadius = i % 2 == 0 ? radius : radius * 0.5
+                let x = center.x + cos(angle) * pointRadius
+                let y = center.y + sin(angle) * pointRadius
+                path.addLine(to: CGPoint(x: x, y: y))
+            }
+            path.closeSubpath()
+        }
     }
 }
 

@@ -11,7 +11,7 @@ struct BibleAppApp: App {
 
     var body: some Scene {
         WindowGroup {
-            SplashView()
+            ContentView()
                 .environmentObject(authState)
         }
     }

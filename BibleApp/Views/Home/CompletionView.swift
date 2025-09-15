@@ -63,9 +63,9 @@ struct CompletionView: View {
                             }
                             .font(.system(size: geo.size.width * 0.045, weight: .semibold))
                             .foregroundColor(.black)
-                            .padding(.vertical, 8) // Increased vertical padding
+                            .padding(.vertical, 12) // Increased vertical padding
                             .padding(.horizontal, 8)
-                            .frame(maxWidth: geo.size.width * 0.5) // Reduced width
+                            .frame(maxWidth: 120) // Fixed compact width
                             .background(Color(hex: "#d8b4fe"))
                             .cornerRadius(8)
                             .shadow(radius: 2)
