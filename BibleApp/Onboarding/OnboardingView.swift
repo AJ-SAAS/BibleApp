@@ -13,14 +13,11 @@ struct OnboardingView: View {
                 if showMissionScreen {
                     MissionScreen(
                         onContinueAsGuest: {
-                            // Reset all relevant UserDefaults keys
                             UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
-                            // Clear any onboarding answers to ensure clean state
                             let keys = ["denomination", "frequency", "experience", "preference", "goal", "time", "notification"]
                             keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
                             authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
                             navigateToQuestions = true
-                            print("MissionScreen: Continuing as guest, hasCompletedOnboardingQuestions set to false, isGuest: \(authState.isGuest), navigateToQuestions: \(navigateToQuestions)")
                         },
                         onSignIn: {
                             navigateToAuth = true
@@ -39,10 +36,7 @@ struct OnboardingView: View {
                     .navigationBarBackButtonHidden(true)
                 } else {
                     ZStack {
-                        // Background image
-                        Image("back1")
-                            .resizable()
-                            .scaledToFill()
+                        Color(red: 1.0, green: 0.992, blue: 0.961)
                             .ignoresSafeArea()
                         
                         VStack {
@@ -88,23 +82,20 @@ struct OnboardingView: View {
                                             keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
                                             authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
                                             navigateToQuestions = true
-                                            print("OnboardingPage: Get Started, hasCompletedOnboardingQuestions set to false, isGuest: \(authState.isGuest), navigateToQuestions: \(navigateToQuestions)")
                                         }
                                     )
                                 }
                             }
                             
-                            // Page indicator dots
                             HStack(spacing: 8) {
                                 ForEach(0..<4, id: \.self) { index in
                                     Circle()
                                         .frame(width: 8, height: 8)
-                                        .foregroundColor(index == currentPage ? .white : .gray.opacity(0.3))
+                                        .foregroundColor(index == currentPage ? .black : .gray.opacity(0.3))
                                 }
                             }
                             .padding(.bottom, 20)
                         }
-                        .gesture(DragGesture().onEnded { _ in })
                     }
                 }
             }
@@ -112,6 +103,7 @@ struct OnboardingView: View {
     }
 }
 
+// MARK: - OnboardingPage
 struct OnboardingPage: View {
     let title: String
     let subtitle: String
@@ -128,29 +120,27 @@ struct OnboardingPage: View {
                 .resizable()
                 .scaledToFit()
                 .frame(height: 100)
-                .foregroundColor(.white)
+                .foregroundColor(.black)
             
             Text(title)
                 .font(.system(size: 28, weight: .bold, design: .serif))
-                .foregroundColor(.white)
+                .foregroundColor(.black)
             
             Text(subtitle)
                 .font(.system(size: 18, weight: .regular, design: .serif))
-                .foregroundColor(.gray)
+                .foregroundColor(.black.opacity(0.7))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             
             Spacer()
             
-            Button(action: {
-                onButtonTap()
-            }) {
+            Button(action: { onButtonTap() }) {
                 Text(buttonText)
                     .font(.system(.headline, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .padding()
                     .frame(maxWidth: 300)
-                    .background(Color.white)
+                    .background(Color.black)
                     .cornerRadius(8)
             }
             .padding(.bottom, 60)
@@ -160,97 +150,95 @@ struct OnboardingPage: View {
     }
 }
 
+// MARK: - MissionScreen
 struct MissionScreen: View {
     var onContinueAsGuest: () -> Void
     var onSignIn: () -> Void
 
     var body: some View {
         ZStack {
-            // Background image
-            Image("back1")
-                .resizable()
-                .scaledToFill()
+            Color(red: 1.0, green: 0.992, blue: 0.961)
                 .ignoresSafeArea()
             
-            VStack(alignment: .leading, spacing: 12) {
-                // App Logo
-                Image("dailybiblelogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 180, height: 180, alignment: .leading)
-                    .cornerRadius(40)
-                    .padding(.top, 40)
-                    .padding(.leading, 20)
-                
-                // Tagline
-                Text("Built on Scripture, Made for You.")
-                    .font(.system(size: 34, weight: .bold, design: .serif))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 20)
-                
-                // Description
-                Text("Created with guidance from pastors, teachers, and believers who live by the Word.")
-                    .font(.system(size: 18, weight: .regular, design: .serif))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
-                
-                Text("Join a growing community of Christians deepening their faith daily.")
-                    .font(.system(size: 27, weight: .semibold, design: .serif))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(Color.black)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.yellow, lineWidth: 0.5)
-                    )
-                    .frame(maxWidth: .infinity)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 40)
-                
-                Button(action: onContinueAsGuest) {
-                    Text("Continue without an account")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 4)
-                
-                Button(action: onSignIn) {
-                    HStack {
-                        Image(systemName: "envelope.fill")
-                            .font(.title2)
-                        Text("Sign up with Email")
-                            .font(.system(size: 17, weight: .semibold))
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Image("dailybiblelogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 180, height: 180)
+                        .cornerRadius(40)
+                        .padding(.top, 20) // reduced top padding
+                        .padding(.leading, 20)
+                    
+                    Text("Built on Scripture, Made for You.")
+                        .font(.system(size: 34, weight: .bold, design: .serif))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 20)
+                    
+                    Text("Created with guidance from pastors, teachers, and believers who live by the Word.")
+                        .font(.system(size: 18, weight: .regular, design: .serif))
+                        .foregroundColor(.black.opacity(0.7))
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 40)
+                    
+                    // Highlighted community text with new background & white font
+                    Text("Join a growing community of Christians deepening their faith daily.")
+                        .font(.system(size: 23, weight: .regular, design: .serif)) // 2px smaller
+                        .foregroundColor(.black) // white text
+                        .multilineTextAlignment(.center)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            Color(hex: "#e6e2d5") // new background color
+                                .cornerRadius(12)
+                                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                        .padding(.horizontal, 32)
+                        .padding(.bottom, 40)
+                    
+                    Button(action: onContinueAsGuest) {
+                        Text("Continue without an account")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.black)
                     }
-                    .foregroundColor(.black)
-                    .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                }
-                .padding(.horizontal, 20)
-                
-                Text("We respect your privacy and handle your sensitive information according to GDPR standards. By signing up, you agree to our Privacy Policy and Terms of Use.")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 4)
+                    
+                    Button(action: onSignIn) {
+                        HStack {
+                            Image(systemName: "envelope.fill")
+                                .font(.title2)
+                            Text("Sign up with Email")
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.black)
+                        .cornerRadius(10)
+                    }
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
+                    
+                    Text("We respect your privacy and handle your sensitive information according to GDPR standards. By signing up, you agree to our Privacy Policy and Terms of Use.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.black.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 40)
+                }
+                .padding(.top, 16)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .padding(.top, 16)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 }
 
+// MARK: - Preview
 #Preview("iPhone 14 - Onboarding") {
     OnboardingView()
         .environmentObject(AuthenticationState())

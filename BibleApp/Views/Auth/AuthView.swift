@@ -69,7 +69,7 @@ struct AuthView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, geometry.size.width > 600 ? 40 : 24)
             }
-            .background(Color.white.ignoresSafeArea())
+            .background(Color(hex: "#fffcf5").ignoresSafeArea())
             .sheet(isPresented: $showingResetPassword) {
                 ResetPasswordView(
                     geometry: geometry,
@@ -135,7 +135,7 @@ struct LogoView: View {
             .resizable()
             .scaledToFit()
             .frame(maxWidth: min(geometry.size.width * 0.4, 180))
-            .cornerRadius(40)
+            .cornerRadius(40) // Curved edges
             .padding(.top, geometry.size.width > 600 ? 40 : 24)
             .accessibilityLabel("dailybiblelogo")
     }
@@ -153,8 +153,8 @@ struct FormView: View {
     var body: some View {
         VStack(spacing: geometry.size.width > 600 ? 20 : 16) {
             // Title
-            Text(isSignUp ? "Get Started" : "Sign In")
-                .font(.system(.largeTitle, design: .default, weight: .bold))
+            Text(isSignUp ? "Let's get started" : "Sign In")
+                .font(.system(size: isSignUp ? 28 : 30, weight: .bold, design: .default))
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
@@ -170,46 +170,14 @@ struct FormView: View {
             }
 
             // Email Field
-            TextField("Email", text: $email)
-                .textContentType(.emailAddress)
-                .keyboardType(.emailAddress)
-                .textInputAutocapitalization(.never)
-                .disableAutocorrection(true)
-                .font(.system(.body, design: .default, weight: .regular))
-                .foregroundColor(.black)
-                .padding()
-                .background(.gray.opacity(0.1))
-                .cornerRadius(8)
-                .frame(maxWidth: min(geometry.size.width * 0.9, 600))
-                .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
-                .accessibilityLabel("Email")
+            StyledTextField(placeholder: "Email", text: $email, geometry: geometry)
 
             // Password Field
-            SecureField("Password", text: $password)
-                .textContentType(isSignUp ? .newPassword : .password)
-                .disableAutocorrection(true)
-                .font(.system(.body, design: .default, weight: .regular))
-                .foregroundColor(.black)
-                .padding()
-                .background(.gray.opacity(0.1))
-                .cornerRadius(8)
-                .frame(maxWidth: min(geometry.size.width * 0.9, 600))
-                .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
-                .accessibilityLabel("Password")
+            StyledSecureField(placeholder: "Password", text: $password, geometry: geometry)
 
             // Confirm Password Field
             if isSignUp {
-                SecureField("Confirm Password", text: $confirmPassword)
-                    .textContentType(.newPassword)
-                    .disableAutocorrection(true)
-                    .font(.system(.body, design: .default, weight: .regular))
-                    .foregroundColor(.black)
-                    .padding()
-                    .background(.gray.opacity(0.1))
-                    .cornerRadius(8)
-                    .frame(maxWidth: min(geometry.size.width * 0.9, 600))
-                    .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
-                    .accessibilityLabel("Confirm Password")
+                StyledSecureField(placeholder: "Confirm Password", text: $confirmPassword, geometry: geometry)
             }
 
             // Error Message
@@ -222,6 +190,52 @@ struct FormView: View {
                     .accessibilityLabel("Error: \(error)")
             }
         }
+    }
+}
+
+// Styled TextField with minimalistic shadow
+struct StyledTextField: View {
+    let placeholder: String
+    @Binding var text: String
+    let geometry: GeometryProxy
+
+    var body: some View {
+        TextField(placeholder, text: $text)
+            .textContentType(.emailAddress)
+            .keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never)
+            .disableAutocorrection(true)
+            .font(.system(.body, design: .default, weight: .regular))
+            .foregroundColor(.black)
+            .padding()
+            .background(Color.white)
+            .cornerRadius(8)
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            .frame(maxWidth: min(geometry.size.width * 0.9, 600))
+            .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
+            .accessibilityLabel(placeholder)
+    }
+}
+
+// Styled SecureField with minimalistic shadow
+struct StyledSecureField: View {
+    let placeholder: String
+    @Binding var text: String
+    let geometry: GeometryProxy
+
+    var body: some View {
+        SecureField(placeholder, text: $text)
+            .textContentType(.password)
+            .disableAutocorrection(true)
+            .font(.system(.body, design: .default, weight: .regular))
+            .foregroundColor(.black)
+            .padding()
+            .background(Color.white)
+            .cornerRadius(8)
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            .frame(maxWidth: min(geometry.size.width * 0.9, 600))
+            .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
+            .accessibilityLabel(placeholder)
     }
 }
 
@@ -239,7 +253,7 @@ struct ActionButtonsView: View {
 
     var body: some View {
         VStack(spacing: geometry.size.width > 600 ? 24 : 20) {
-            Button(isSignUp ? "Get Started" : "Sign In") {
+            Button(isSignUp ? "Let's get started" : "Sign In") {
                 onAction()
             }
             .font(.system(.headline, design: .default, weight: .semibold))
@@ -250,7 +264,7 @@ struct ActionButtonsView: View {
             .cornerRadius(8)
             .disabled(email.isEmpty || password.isEmpty || (isSignUp && confirmPassword.isEmpty) || isProcessing)
             .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
-            .accessibilityLabel(isSignUp ? "Get Started" : "Sign In")
+            .accessibilityLabel(isSignUp ? "Let's get started" : "Sign In")
 
             Button(isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up") {
                 onToggleSignUp()
@@ -288,19 +302,7 @@ struct ResetPasswordView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
 
-            TextField("Email", text: $resetEmail)
-                .textContentType(.emailAddress)
-                .keyboardType(.emailAddress)
-                .textInputAutocapitalization(.none)
-                .disableAutocorrection(true)
-                .font(.system(.body, design: .default, weight: .regular))
-                .foregroundColor(.black)
-                .padding()
-                .background(.gray.opacity(0.1))
-                .cornerRadius(8)
-                .frame(maxWidth: min(geometry.size.width * 0.9, 600))
-                .padding(.horizontal, geometry.size.width > 600 ? 64 : 32)
-                .accessibilityLabel("Reset Email")
+            StyledTextField(placeholder: "Email", text: $resetEmail, geometry: geometry)
 
             Button("Send Reset Email") {
                 onSendReset()
@@ -326,7 +328,7 @@ struct ResetPasswordView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, geometry.size.width > 600 ? 40 : 24)
-        .background(Color.white.ignoresSafeArea())
+        .background(Color(hex: "#fffcf5").ignoresSafeArea())
     }
 }
 

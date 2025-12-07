@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 struct CompletionView: View {
     let onDismiss: () -> Void
@@ -9,7 +10,7 @@ struct CompletionView: View {
         GeometryReader { geo in
             ZStack {
                 // Background image
-                Image("back2")
+                Image("back1")
                     .resizable()
                     .scaledToFill()
                     .ignoresSafeArea()
@@ -23,7 +24,6 @@ struct CompletionView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: geo.size.height * 0.04) {
-                    // Push content down
                     Spacer()
                         .frame(height: geo.size.height * 0.1)
                     
@@ -63,15 +63,15 @@ struct CompletionView: View {
                             }
                             .font(.system(size: geo.size.width * 0.045, weight: .semibold))
                             .foregroundColor(.black)
-                            .padding(.vertical, 12) // Increased vertical padding
+                            .padding(.vertical, 12)
                             .padding(.horizontal, 8)
-                            .frame(maxWidth: 120) // Fixed compact width
+                            .frame(maxWidth: 120)
                             .background(Color(hex: "#d8b4fe"))
                             .cornerRadius(8)
                             .shadow(radius: 2)
                         }
                         .sheet(isPresented: $isShowingShareSheet) {
-                            ShareSheet(items: ["I completed all my daily tasks in BibleApp! 🎉"])
+                            ShareSheet(items: ["I completed all my daily tasks in TheDailyBible! 🎉"])
                         }
                         
                         Button(action: {
@@ -90,12 +90,20 @@ struct CompletionView: View {
             }
         }
         .onAppear {
+            // Start confetti
             isConfettiActive = true
             print("CompletionView: onAppear, isConfettiActive set to true")
+            
             // Stop confetti after 3 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 isConfettiActive = false
                 print("CompletionView: Confetti stopped after 3 seconds")
+                
+                // ✅ Trigger App Store review prompt
+                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                    SKStoreReviewController.requestReview(in: scene)
+                    print("CompletionView: SKStoreReviewController triggered")
+                }
             }
         }
         .onChange(of: isConfettiActive) { _, newValue in

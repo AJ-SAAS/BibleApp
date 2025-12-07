@@ -16,6 +16,7 @@ struct HomeView: View {
 
             ScrollView {
                 VStack(spacing: spacingVStack) {
+
                     // Day + Monthly Theme
                     VStack(alignment: .leading, spacing: 4) {
                         Text(dayOfWeekString())
@@ -79,8 +80,8 @@ struct HomeView: View {
                             .fill(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        Color(hex: "#fffcf5"),
-                                        Color(hex: "#e6e2d5")
+                                        Color(hex: "#b5ecfe"),
+                                        Color(hex: "#e2f4fc")
                                     ]),
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -159,8 +160,8 @@ struct HomeView: View {
                         .background(
                             RadialGradient(
                                 gradient: Gradient(colors: [
-                                    Color(hex: "#b505c8"),
-                                    Color(hex: "#5f0b89")
+                                    Color(hex: "#2a3da3"),
+                                    Color(hex: "#6da9ff")
                                 ]),
                                 center: .center,
                                 startRadius: geometry.size.width * 0.1,
@@ -179,7 +180,10 @@ struct HomeView: View {
                 .padding(.top, geometry.size.width > 600 ? 40 : 24)
             }
             .scrollIndicators(.hidden)
-            .background(Color.white)
+
+            // ✅ Updated Background Color
+            .background(Color(hex: "#fffcf5"))
+            
             .navigationBarBackButtonHidden(true)
             .sheet(isPresented: $viewModel.showCompletionView) {
                 CompletionView(onDismiss: {
