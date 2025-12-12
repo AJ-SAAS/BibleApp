@@ -79,7 +79,7 @@ struct OnboardingQuestionsView: View {
                 VStack(spacing: 20) {
                     // Progress Bar
                     ProgressView(value: Double(currentQuestionIndex + 1), total: Double(questions.count))
-                        .progressViewStyle(LinearProgressViewStyle(tint: Color.purple.opacity(0.8)))
+                        .progressViewStyle(LinearProgressViewStyle(tint: Color.blue.opacity(0.8)))
                         .padding(.horizontal, 20)
                         .padding(.top, 10)
                     
