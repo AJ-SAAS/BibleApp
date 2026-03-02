@@ -17,21 +17,20 @@ struct SettingsView: View {
     @State private var showDeleteConfirmation: Bool = false
     @State private var deletionError: String?
     @State private var isDeleting: Bool = false
-    
-    // Answer choices for pickers
+
     let ageRanges = ["13–17", "18–24", "25–34", "35–44", "45–54", "55+"]
     let denominations = ["Orthodox", "Catholic", "Baptist", "Methodist", "Pentecostal", "Other"]
-    let bibleGoals = ["To study and learn the Bible", "To find guidance for life’s challenges"]
-    let readingFrequencies = ["Almost every day", "A few times a week", "Rarely", "I’m new to the Bible"]
+    let bibleGoals = ["To study and learn the Bible", "To find guidance for life's challenges"]
+    let readingFrequencies = ["Almost every day", "A few times a week", "Rarely", "I'm new to the Bible"]
     let spiritualGoals = ["Deepen my daily faith", "Overcome challenges", "Share my faith with others", "Build lasting habits"]
     let guidancePreferences = ["Daily verses & tasks", "In-depth Bible study", "Encouragement from community", "Guided prayers"]
-    let biggestChallenges = ["Staying consistent", "Feeling disconnected", "Life’s challenges", "Understanding the Bible"]
-    
+    let biggestChallenges = ["Staying consistent", "Feeling disconnected", "Life's challenges", "Understanding the Bible"]
+
     private let privacyPolicyURL = URL(string: "https://www.thedailybible.app/r/privacy")!
     private let websiteURL = URL(string: "https://www.thedailybible.app/")!
     private let termsOfUseURL = URL(string: "https://www.thedailybible.app/r/terms")!
     private let supportEmailURL = URL(string: "mailto:thedailybibleappsupport@gmail.com?subject=Daily%20Bible%20App%20Support")!
-    
+
     private let userDefaults = UserDefaults.standard
     private let nameKey = "UserName"
     private let ageRangeKey = "UserAgeGroup"
@@ -43,151 +42,119 @@ struct SettingsView: View {
     private let spiritualGoalKey = "UserSpiritualGoal"
     private let guidancePreferenceKey = "UserGuidancePreference"
     private let biggestChallengeKey = "UserBiggestChallenge"
-    
+
     init() {
-        _name = State(initialValue: UserDefaults.standard.string(forKey: nameKey) ?? "")
-        _ageRange = State(initialValue: UserDefaults.standard.string(forKey: ageRangeKey) ?? "")
-        _email = State(initialValue: UserDefaults.standard.string(forKey: emailKey) ?? (Auth.auth().currentUser?.email ?? ""))
-        _denomination = State(initialValue: UserDefaults.standard.string(forKey: denominationKey) ?? "")
-        _church = State(initialValue: UserDefaults.standard.string(forKey: churchKey) ?? "")
-        _bibleGoal = State(initialValue: UserDefaults.standard.string(forKey: bibleGoalKey) ?? "")
-        _readingFrequency = State(initialValue: UserDefaults.standard.string(forKey: readingFrequencyKey) ?? "")
-        _spiritualGoal = State(initialValue: UserDefaults.standard.string(forKey: spiritualGoalKey) ?? "")
-        _guidancePreference = State(initialValue: UserDefaults.standard.string(forKey: guidancePreferenceKey) ?? "")
-        _biggestChallenge = State(initialValue: UserDefaults.standard.string(forKey: biggestChallengeKey) ?? "")
+        _name = State(initialValue: UserDefaults.standard.string(forKey: "UserName") ?? "")
+        _ageRange = State(initialValue: UserDefaults.standard.string(forKey: "UserAgeGroup") ?? "")
+        _email = State(initialValue: UserDefaults.standard.string(forKey: "UserEmail") ?? (Auth.auth().currentUser?.email ?? ""))
+        _denomination = State(initialValue: UserDefaults.standard.string(forKey: "UserFaithBackground") ?? "")
+        _church = State(initialValue: UserDefaults.standard.string(forKey: "UserChurch") ?? "")
+        _bibleGoal = State(initialValue: UserDefaults.standard.string(forKey: "UserBibleGoal") ?? "")
+        _readingFrequency = State(initialValue: UserDefaults.standard.string(forKey: "UserReadingFrequency") ?? "")
+        _spiritualGoal = State(initialValue: UserDefaults.standard.string(forKey: "UserSpiritualGoal") ?? "")
+        _guidancePreference = State(initialValue: UserDefaults.standard.string(forKey: "UserGuidancePreference") ?? "")
+        _biggestChallenge = State(initialValue: UserDefaults.standard.string(forKey: "UserBiggestChallenge") ?? "")
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            NavigationStack {
-                Form {
+        ZStack {
+            LinearGradient(
+                colors: [Color(hex: "#fde8e8"), Color(hex: "#fdf0f0"), Color(hex: "#ebe8f5")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 24) {
+
+                    // ── Page title ───────────────────────────
+                    VStack(spacing: 4) {
+                        Text("Settings")
+                            .font(.custom("Georgia", size: 30))
+                            .italic()
+                            .foregroundColor(.textDark)
+                        Text("Manage your account & preferences")
+                            .font(.system(size: 13))
+                            .foregroundColor(.textSoft)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 20)
+
+                    // ── Account section ──────────────────────
                     if authState.isAuthenticated {
-                        Section(header: Text("Account Info")) {
-                            TextField("Name", text: $name)
-                                .onChange(of: name) { _, newValue in
-                                    userDefaults.set(newValue, forKey: nameKey)
-                                }
-                                .accessibilityLabel("Name")
-                            Picker("Age Range", selection: $ageRange) {
-                                ForEach(ageRanges, id: \.self) { range in
-                                    Text(range).tag(range)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: ageRange) { _, newValue in
-                                userDefaults.set(newValue, forKey: ageRangeKey)
-                            }
-                            .accessibilityLabel("Age Range")
-                            TextField("Email", text: $email)
+                        settingsCard {
+                            sectionHeader("Account Info", icon: "person.circle")
+
+                            styledTextField("Name", text: $name, key: nameKey)
+                            divider()
+                            styledPickerRow("Age Range", selection: $ageRange, options: ageRanges, key: ageRangeKey)
+                            divider()
+                            styledTextField("Email", text: $email, key: emailKey)
                                 .keyboardType(.emailAddress)
                                 .textInputAutocapitalization(.never)
                                 .disableAutocorrection(true)
-                                .onChange(of: email) { _, newValue in
-                                    userDefaults.set(newValue, forKey: emailKey)
-                                }
-                                .accessibilityLabel("Email")
-                            Picker("Denomination", selection: $denomination) {
-                                ForEach(denominations, id: \.self) { denom in
-                                    Text(denom).tag(denom)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: denomination) { _, newValue in
-                                userDefaults.set(newValue, forKey: denominationKey)
-                            }
-                            .accessibilityLabel("Denomination")
-                            TextField("Church", text: $church)
-                                .onChange(of: church) { _, newValue in
-                                    userDefaults.set(newValue, forKey: churchKey)
-                                }
-                                .accessibilityLabel("Church")
-                            Picker("Bible Goal", selection: $bibleGoal) {
-                                ForEach(bibleGoals, id: \.self) { goal in
-                                    Text(goal).tag(goal)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: bibleGoal) { _, newValue in
-                                userDefaults.set(newValue, forKey: bibleGoalKey)
-                            }
-                            .accessibilityLabel("Bible Goal")
-                            Picker("Reading Frequency", selection: $readingFrequency) {
-                                ForEach(readingFrequencies, id: \.self) { frequency in
-                                    Text(frequency).tag(frequency)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: readingFrequency) { _, newValue in
-                                userDefaults.set(newValue, forKey: readingFrequencyKey)
-                            }
-                            .accessibilityLabel("Reading Frequency")
-                            Picker("Spiritual Goal", selection: $spiritualGoal) {
-                                ForEach(spiritualGoals, id: \.self) { goal in
-                                    Text(goal).tag(goal)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: spiritualGoal) { _, newValue in
-                                userDefaults.set(newValue, forKey: spiritualGoalKey)
-                            }
-                            .accessibilityLabel("Spiritual Goal")
-                            Picker("Guidance Preference", selection: $guidancePreference) {
-                                ForEach(guidancePreferences, id: \.self) { preference in
-                                    Text(preference).tag(preference)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: guidancePreference) { _, newValue in
-                                userDefaults.set(newValue, forKey: guidancePreferenceKey)
-                            }
-                            .accessibilityLabel("Guidance Preference")
-                            Picker("Biggest Challenge", selection: $biggestChallenge) {
-                                ForEach(biggestChallenges, id: \.self) { challenge in
-                                    Text(challenge).tag(challenge)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: biggestChallenge) { _, newValue in
-                                userDefaults.set(newValue, forKey: biggestChallengeKey)
-                            }
-                            .accessibilityLabel("Biggest Challenge")
+                            divider()
+                            styledPickerRow("Denomination", selection: $denomination, options: denominations, key: denominationKey)
+                            divider()
+                            styledTextField("Church", text: $church, key: churchKey)
+                        }
+
+                        settingsCard {
+                            sectionHeader("Bible & Faith", icon: "book")
+
+                            styledPickerRow("Bible Goal", selection: $bibleGoal, options: bibleGoals, key: bibleGoalKey)
+                            divider()
+                            styledPickerRow("Reading Frequency", selection: $readingFrequency, options: readingFrequencies, key: readingFrequencyKey)
+                            divider()
+                            styledPickerRow("Spiritual Goal", selection: $spiritualGoal, options: spiritualGoals, key: spiritualGoalKey)
+                            divider()
+                            styledPickerRow("Guidance Preference", selection: $guidancePreference, options: guidancePreferences, key: guidancePreferenceKey)
+                            divider()
+                            styledPickerRow("Biggest Challenge", selection: $biggestChallenge, options: biggestChallenges, key: biggestChallengeKey)
+                        }
+
+                        // Sign out / delete
+                        settingsCard {
+                            sectionHeader("Account Actions", icon: "gearshape")
+
                             Button(action: {
-                                do {
-                                    try Auth.auth().signOut()
-                                    authState.updateAuthenticationState(isAuthenticated: false, isGuest: false)
-                                    resetUserDefaults()
-                                    UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
-                                    UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
-                                } catch {
-                                    deletionError = error.localizedDescription
-                                }
+                                try? Auth.auth().signOut()
+                                authState.updateAuthenticationState(isAuthenticated: false, isGuest: false)
+                                resetUserDefaults()
+                                UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+                                UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
                             }) {
-                                Text("Sign Out")
-                                    .foregroundStyle(.blue)
+                                actionRow(label: "Sign Out", icon: "arrow.right.circle", color: .roseGold)
                             }
-                            .accessibilityLabel("Sign Out")
-                            Button(action: {
-                                showDeleteConfirmation = true
-                            }) {
-                                Text("Delete Account")
-                                    .foregroundStyle(.red)
+                            .buttonStyle(PlainButtonStyle())
+
+                            divider()
+
+                            Button(action: { showDeleteConfirmation = true }) {
+                                actionRow(label: "Delete Account", icon: "trash", color: Color.red.opacity(0.7))
                             }
+                            .buttonStyle(PlainButtonStyle())
                             .disabled(isDeleting)
-                            .accessibilityLabel("Delete Account")
                         }
+
                         if let error = deletionError {
-                            Section {
-                                Text(error)
-                                    .foregroundStyle(.red)
-                                    .accessibilityLabel("Error: \(error)")
-                            }
+                            Text(error)
+                                .font(.system(size: 13))
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 20)
                         }
+
                     } else if authState.isGuest {
-                        Section(header: Text("Account Info")) {
-                            Text("You are using the app as a guest. Sign in or sign up to save your profile across devices and unlock more features (optional).")
-                                .font(.system(.body, design: .default, weight: .regular))
-                                .foregroundColor(.gray)
-                                .accessibilityLabel("Guest mode message")
+                        settingsCard {
+                            sectionHeader("Account", icon: "person.circle")
+
+                            Text("You're browsing as a guest. Sign in to save your profile and unlock more features.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.textSoft)
+                                .lineSpacing(5)
+                                .padding(.top, 4)
+
                             Button(action: {
                                 authState.updateAuthenticationState(isAuthenticated: false, isGuest: false)
                                 resetUserDefaults()
@@ -195,82 +162,187 @@ struct SettingsView: View {
                                 UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
                             }) {
                                 Text("Sign In / Sign Up")
-                                    .foregroundStyle(.blue)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 14)
+                                    .background(Color.roseGold)
+                                    .cornerRadius(14)
                             }
-                            .accessibilityLabel("Sign In or Sign Up")
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.top, 8)
                         }
                     }
-                    
-                    Section(header: Text("About")) {
-                        Link("Contact Us", destination: supportEmailURL)
-                            .foregroundStyle(.blue)
-                            .accessibilityLabel("Contact Us")
-                        Link("Terms of Use", destination: termsOfUseURL)
-                            .foregroundStyle(.blue)
-                            .accessibilityLabel("Terms of Use")
-                        Link("Privacy Policy", destination: privacyPolicyURL)
-                            .foregroundStyle(.blue)
-                            .accessibilityLabel("Privacy Policy")
-                        Link("Website", destination: websiteURL)
-                            .foregroundStyle(.blue)
-                            .accessibilityLabel("Website")
+
+                    // ── About section ────────────────────────
+                    settingsCard {
+                        sectionHeader("About", icon: "info.circle")
+
+                        linkRow(label: "Contact Us", url: supportEmailURL)
+                        divider()
+                        linkRow(label: "Terms of Use", url: termsOfUseURL)
+                        divider()
+                        linkRow(label: "Privacy Policy", url: privacyPolicyURL)
+                        divider()
+                        linkRow(label: "Website", url: websiteURL)
                     }
+
+                    // Version
+                    Text("Dear Mom · Bible for Moms")
+                        .font(.system(size: 11))
+                        .foregroundColor(.textSoft)
+                        .padding(.bottom, 40)
                 }
-                .navigationTitle("Settings")
-                .navigationBarBackButtonHidden(true)
-                .background(Color.white)
-                .scrollContentBackground(.hidden)
-                .alert("Delete Account", isPresented: $showDeleteConfirmation) {
-                    Button("Cancel", role: .cancel) {
-                        showDeleteConfirmation = false
-                    }
-                    Button("Delete", role: .destructive) {
-                        isDeleting = true
-                        viewModel.deleteAccount(authState: authState) { result in
-                            isDeleting = false
-                            switch result {
-                            case .success:
-                                resetUserDefaults()
-                                UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
-                                UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
-                                deletionError = nil
-                            case .failure(let error):
-                                deletionError = error.localizedDescription
-                            }
-                            showDeleteConfirmation = false
-                        }
-                    }
-                } message: {
-                    Text("Are you sure you want to delete your account? This action cannot be undone.")
-                }
+                .padding(.horizontal, 20)
             }
         }
+        .navigationTitle("")
+        .navigationBarHidden(true)
+        .alert("Delete Account", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { showDeleteConfirmation = false }
+            Button("Delete", role: .destructive) {
+                isDeleting = true
+                viewModel.deleteAccount(authState: authState) { result in
+                    isDeleting = false
+                    switch result {
+                    case .success:
+                        resetUserDefaults()
+                        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+                        UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
+                        deletionError = nil
+                    case .failure(let error):
+                        deletionError = error.localizedDescription
+                    }
+                    showDeleteConfirmation = false
+                }
+            }
+        } message: {
+            Text("Are you sure you want to delete your account? This action cannot be undone.")
+        }
     }
-    
+
+    // MARK: - Reusable Components
+
+    @ViewBuilder
+    private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            content()
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: Color(hex: "#f0c8c8").opacity(0.2), radius: 10, x: 0, y: 4)
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.roseGold)
+            Text(title.uppercased())
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(2)
+                .foregroundColor(.textSoft)
+        }
+        .padding(.bottom, 14)
+    }
+
+    @ViewBuilder
+    private func styledTextField(_ label: String, text: Binding<String>, key: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 14))
+                .foregroundColor(.textSoft)
+                .frame(width: 110, alignment: .leading)
+            TextField(label, text: text)
+                .font(.system(size: 14))
+                .foregroundColor(.textDark)
+                .multilineTextAlignment(.trailing)
+                .onChange(of: text.wrappedValue) { _, newValue in
+                    userDefaults.set(newValue, forKey: key)
+                }
+        }
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func styledPickerRow(_ label: String, selection: Binding<String>, options: [String], key: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 14))
+                .foregroundColor(.textSoft)
+                .frame(width: 110, alignment: .leading)
+            Spacer()
+            Picker("", selection: selection) {
+                ForEach(options, id: \.self) { option in
+                    Text(option).tag(option)
+                }
+            }
+            .pickerStyle(.menu)
+            .tint(.roseGold)
+            .onChange(of: selection.wrappedValue) { _, newValue in
+                userDefaults.set(newValue, forKey: key)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    @ViewBuilder
+    private func actionRow(label: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 15))
+                .foregroundColor(color)
+            Text(label)
+                .font(.system(size: 15))
+                .foregroundColor(color)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12))
+                .foregroundColor(.textSoft)
+        }
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func linkRow(label: String, url: URL) -> some View {
+        Link(destination: url) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 15))
+                    .foregroundColor(.textDark)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12))
+                    .foregroundColor(.textSoft)
+            }
+            .padding(.vertical, 10)
+        }
+    }
+
+    @ViewBuilder
+    private func divider() -> some View {
+        Rectangle()
+            .fill(Color(hex: "#f0e8e8"))
+            .frame(height: 1)
+    }
+
+    // MARK: - Helpers
+
     private func resetUserDefaults() {
-        userDefaults.removeObject(forKey: nameKey)
-        userDefaults.removeObject(forKey: ageRangeKey)
-        userDefaults.removeObject(forKey: emailKey)
-        userDefaults.removeObject(forKey: denominationKey)
-        userDefaults.removeObject(forKey: churchKey)
-        userDefaults.removeObject(forKey: bibleGoalKey)
-        userDefaults.removeObject(forKey: readingFrequencyKey)
-        userDefaults.removeObject(forKey: spiritualGoalKey)
-        userDefaults.removeObject(forKey: guidancePreferenceKey)
-        userDefaults.removeObject(forKey: biggestChallengeKey)
-        userDefaults.removeObject(forKey: "ChecklistTasks")
-        userDefaults.removeObject(forKey: "CompletedDays")
-        userDefaults.removeObject(forKey: "CompletedTaskCount")
-        userDefaults.removeObject(forKey: "CurrentWeek")
+        let keys = [nameKey, ageRangeKey, emailKey, denominationKey, churchKey,
+                    bibleGoalKey, readingFrequencyKey, spiritualGoalKey,
+                    guidancePreferenceKey, biggestChallengeKey,
+                    "ChecklistTasks", "CompletedDays", "CompletedTaskCount", "CurrentWeek"]
+        keys.forEach { userDefaults.removeObject(forKey: $0) }
     }
 }
 
-#Preview("iPhone 14") {
-    SettingsView()
-        .environmentObject(AuthenticationState())
-}
-
-#Preview("iPad Pro") {
-    SettingsView()
-        .environmentObject(AuthenticationState())
+#Preview {
+    NavigationStack {
+        SettingsView()
+            .environmentObject(AuthenticationState())
+    }
 }

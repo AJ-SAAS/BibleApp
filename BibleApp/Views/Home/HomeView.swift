@@ -160,7 +160,7 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("HIS PROMISE")
+                        Text("DEAR MOM")
                             .font(.system(size: 10, weight: .semibold))
                             .tracking(3.5)
                             .foregroundColor(.roseGold)
@@ -345,7 +345,7 @@ struct HomeView: View {
                     .buttonStyle(PlainButtonStyle())
 
                     Button(action: {
-                        shareText = "\u{201C}\(currentPromise.verse)\u{201D}\n\u{2014} \(currentPromise.reference)\n\nShared from His Promise"
+                        shareText = "\u{201C}\(currentPromise.verse)\u{201D}\n\u{2014} \(currentPromise.reference)\n\nShared from Dear Mom: Bible Promises"
                         showShareSheet = true
                     }) {
                         HStack(spacing: 7) {

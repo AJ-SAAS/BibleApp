@@ -28,16 +28,16 @@ struct TabBarView: View {
             }
             .tag(1)
 
-            // ── Saved ──
+            // ── Bible Study ──
             NavigationStack {
-                SavedView()
+                BibleView()
                     .environmentObject(authState)
             }
             .tabItem {
-                Label("Saved", systemImage: selectedTab == 2 ? "heart.fill" : "heart")
+                Label("Bible Study", systemImage: selectedTab == 2 ? "book.fill" : "book")
             }
             .tag(2)
-
+            
             // ── Settings ──
             NavigationStack {
                 SettingsView()
