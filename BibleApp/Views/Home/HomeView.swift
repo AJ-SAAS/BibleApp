@@ -110,6 +110,7 @@ struct HomeView: View {
                     VStack(spacing: 24) {
                         feelingSection
                         promiseCard
+                        DailyQuizCard()
                         browseTeaserSection
                     }
                     .padding(.horizontal, 20)

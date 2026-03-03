@@ -131,7 +131,7 @@ struct AuthView: View {
 struct LogoView: View {
     let geometry: GeometryProxy
     var body: some View {
-        Image("dailybiblelogo")
+        Image("Bibleformomslogo")
             .resizable()
             .scaledToFit()
             .frame(maxWidth: min(geometry.size.width * 0.4, 180))

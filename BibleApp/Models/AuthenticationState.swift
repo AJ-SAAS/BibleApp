@@ -6,11 +6,15 @@ class AuthenticationState: ObservableObject {
     @Published var isGuest: Bool = false
     private var authListenerHandle: AuthStateDidChangeListenerHandle?
 
+    private let isGuestKey = "authState_isGuest"
+    private let hasCompletedOnboardingKey = "hasCompletedOnboardingQuestions"
+
     init() {
-        // Delay listener to avoid immediate override
+        // Restore guest session from UserDefaults on launch
+        self.isGuest = UserDefaults.standard.bool(forKey: isGuestKey)
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.authListenerHandle = Auth.auth().addStateDidChangeListener { _, user in
-                // Only update if not manually set
                 if !self.isAuthenticated && !self.isGuest {
                     self.isAuthenticated = user != nil
                     self.isGuest = user == nil && self.isGuest
@@ -22,6 +26,9 @@ class AuthenticationState: ObservableObject {
     func updateAuthenticationState(isAuthenticated: Bool, isGuest: Bool = false) {
         self.isAuthenticated = isAuthenticated
         self.isGuest = isGuest
+
+        // Persist guest state so it survives app restarts
+        UserDefaults.standard.set(isGuest, forKey: isGuestKey)
     }
 
     deinit {

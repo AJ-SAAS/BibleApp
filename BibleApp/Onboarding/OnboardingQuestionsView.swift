@@ -1,262 +1,315 @@
 import SwiftUI
 
+// MARK: - Question Model
+
+struct OnboardingQuestion {
+    let question: String
+    let subtitle: String
+    let emoji: String
+    let choices: [String]
+    let key: String
+}
+
+// MARK: - OnboardingQuestionsView
+
 struct OnboardingQuestionsView: View {
     @EnvironmentObject var authState: AuthenticationState
-    @State private var currentQuestionIndex = 0
+    @State private var currentIndex = 0
     @State private var navigateToHome = false
-    
-    // State variables for answers
-    @State private var faithBackground = ""
-    @State private var ageGroup = ""
-    @State private var bibleGoal = ""
-    @State private var readingFrequency = ""
-    @State private var spiritualGoal = ""
-    @State private var guidancePreference = ""
-    @State private var biggestChallenge = ""
-    
-    // UserDefaults keys
+    @State private var answers: [String] = Array(repeating: "", count: 6)
+    @State private var animatingIn = false
+
     private let userDefaults = UserDefaults.standard
-    private let faithBackgroundKey = "UserFaithBackground"
-    private let ageGroupKey = "UserAgeGroup"
-    private let bibleGoalKey = "UserBibleGoal"
-    private let readingFrequencyKey = "UserReadingFrequency"
-    private let spiritualGoalKey = "UserSpiritualGoal"
-    private let guidancePreferenceKey = "UserGuidancePreference"
-    private let biggestChallengeKey = "UserBiggestChallenge"
-    
-    // Question data
-    private let questions = [
-        (
-            question: "What’s your faith background?",
-            subtitle: "This helps us recommend resources that resonate with you.",
-            choices: ["Orthodox", "Catholic", "Baptist", "Methodist", "Pentecostal", "Other"],
-            key: "UserFaithBackground"
+
+    private let questions: [OnboardingQuestion] = [
+        OnboardingQuestion(
+            question: "What stage of motherhood are you in?",
+            subtitle: "So we can share stories and verses that truly speak to where you are.",
+            emoji: "🌸",
+            choices: ["Expecting a baby", "Newborn / baby stage", "Toddler years", "School-age kids", "Raising teens", "Empty nester"],
+            key: "UserMotherhoodStage"
         ),
-        (
-            question: "Which age group best describes you?",
-            subtitle: "We ask so we can better personalize your journey.",
-            choices: ["13–17", "18–24", "25–34", "35–44", "45–54", "55+"],
-            key: "UserAgeGroup"
+        OnboardingQuestion(
+            question: "How would you describe your season right now?",
+            subtitle: "We all go through different seasons — there's no wrong answer here.",
+            emoji: "🍃",
+            choices: ["Overwhelmed & stretched thin", "Finding my footing", "Growing & thriving", "Seeking something deeper"],
+            key: "UserCurrentSeason"
         ),
-        (
-            question: "What’s your main goal with the Bible?",
-            subtitle: "We’d love to know how Closer to Christ can serve you.",
-            choices: ["To study and learn the Bible", "To find guidance for life’s challenges"],
-            key: "UserBibleGoal"
+        OnboardingQuestion(
+            question: "When do you usually find a quiet moment?",
+            subtitle: "We'll help you build a rhythm that fits your real life.",
+            emoji: "☕️",
+            choices: ["Early morning", "Nap time / school hours", "Evening after bedtime", "Whenever I can steal a minute"],
+            key: "UserQuietTime"
         ),
-        (
-            question: "How often do you currently read the Bible?",
-            subtitle: "This helps us encourage you with the right pace.",
-            choices: ["Almost every day", "A few times a week", "Rarely", "I’m new to the Bible"],
-            key: "UserReadingFrequency"
+        OnboardingQuestion(
+            question: "What do you need most right now?",
+            subtitle: "Be honest — we're here for all of it.",
+            emoji: "🙏",
+            choices: ["Strength to keep going", "Peace in the chaos", "Guidance as a mom", "Reconnecting with my faith"],
+            key: "UserCurrentNeed"
         ),
-        (
-            question: "What’s your biggest spiritual goal right now?",
-            subtitle: "We’ll suggest content that supports your growth.",
-            choices: ["Deepen my daily faith", "Overcome challenges", "Share my faith with others", "Build lasting habits"],
-            key: "UserSpiritualGoal"
+        OnboardingQuestion(
+            question: "How long have you been walking with God?",
+            subtitle: "Every journey is beautiful, wherever you are on the path.",
+            emoji: "✝️",
+            choices: ["I'm new to faith", "A few years", "Most of my life", "Returning after a break"],
+            key: "UserFaithJourney"
         ),
-        (
-            question: "What type of guidance do you prefer?",
-            subtitle: "We want to match you with what inspires you most.",
-            choices: ["Daily verses & tasks", "In-depth Bible study", "Encouragement from community", "Guided prayers"],
-            key: "UserGuidancePreference"
-        ),
-        (
-            question: "What’s the biggest challenge you face right now?",
-            subtitle: "This helps us create a daily plan that’s relevant to you.",
-            choices: ["Staying consistent", "Feeling disconnected", "Life’s challenges", "Understanding the Bible"],
-            key: "UserBiggestChallenge"
+        OnboardingQuestion(
+            question: "What brings you here today?",
+            subtitle: "This helps us personalise your daily devotionals just for you.",
+            emoji: "💛",
+            choices: ["I need daily encouragement", "I want to study the Bible", "I want to raise my kids in faith", "I'm going through something hard"],
+            key: "UserReason"
         )
     ]
-    
+
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background
-                Color.white.ignoresSafeArea()
-                
-                VStack(spacing: 20) {
-                    // Progress Bar
-                    ProgressView(value: Double(currentQuestionIndex + 1), total: Double(questions.count))
-                        .progressViewStyle(LinearProgressViewStyle(tint: Color.blue.opacity(0.8)))
-                        .padding(.horizontal, 20)
-                        .padding(.top, 10)
-                    
-                    // Back Button (hidden for first question)
-                    if currentQuestionIndex > 0 {
-                        HStack {
-                            Button(action: {
-                                currentQuestionIndex -= 1
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.black)
-                                    .padding()
-                            }
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                    } else {
-                        Spacer().frame(height: 40) // Maintain spacing for first question
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                colors: [Color(hex: "#fde8e8"), Color(hex: "#fdf0f0"), Color(hex: "#ebe8f5")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+
+                // ── Progress bar ─────────────────────────
+                progressBar
+                    .padding(.top, 16)
+                    .padding(.horizontal, 24)
+
+                // ── Question card ─────────────────────────
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 28) {
+
+                        questionHeader
+                            .padding(.top, 32)
+
+                        choicesStack
+
+                        continueButton
+                            .padding(.bottom, 60)
                     }
-                    
-                    // Question and Subtitle
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("👉 \(questions[currentQuestionIndex].question)")
-                            .font(.system(size: 28, weight: .bold, design: .serif))
-                            .foregroundColor(.black)
-                            .multilineTextAlignment(.leading)
-                        
-                        Text(questions[currentQuestionIndex].subtitle)
-                            .font(.system(size: 16, weight: .regular, design: .serif))
-                            .foregroundColor(.black)
-                            .multilineTextAlignment(.leading)
-                    }
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    // Answer Choices (moved down with padding)
-                    VStack(spacing: 10) {
-                        ForEach(questions[currentQuestionIndex].choices, id: \.self) { choice in
-                            AnswerButton(
-                                choice: choice,
-                                isSelected: isSelected(choice: choice),
-                                onSelect: {
-                                    saveAnswer(choice: choice)
-                                }
-                            )
-                            .frame(maxWidth: 300) // Constrain width for centering
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 20) // Added padding to move answers down
-                    
-                    Spacer()
-                    
-                    // Continue or Start My Journey button
-                    Button(action: {
-                        if isAnswerSelected() {
-                            if currentQuestionIndex < questions.count - 1 {
-                                currentQuestionIndex += 1
-                            } else {
-                                userDefaults.set(true, forKey: "hasCompletedOnboardingQuestions")
-                                navigateToHome = true
-                            }
-                        }
-                    }) {
-                        Text(currentQuestionIndex == questions.count - 1 ? "Start My Journey" : "Continue")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: 300)
-                            .background(isAnswerSelected() ? Color.black : Color.gray)
-                            .cornerRadius(8)
-                    }
-                    .disabled(!isAnswerSelected())
-                    .padding(.bottom, 60)
-                }
-                .padding(.top, 10)
-                .navigationDestination(isPresented: $navigateToHome) {
-                    TabBarView()
-                        .environmentObject(authState)
-                        .navigationBarBackButtonHidden(true)
+                    .padding(.horizontal, 24)
                 }
             }
-            .navigationBarBackButtonHidden(true)
         }
-        .onAppear {
-            // Load saved answers if any
-            loadSavedAnswers()
-            print("OnboardingQuestionsView: Appeared, currentQuestionIndex: \(currentQuestionIndex)")
+        .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $navigateToHome) {
+            TabBarView()
+                .environmentObject(authState)
+                .navigationBarBackButtonHidden(true)
+        }
+        .onAppear { loadSavedAnswers() }
+    }
+
+    // MARK: - Progress Bar
+
+    private var progressBar: some View {
+        VStack(spacing: 10) {
+            HStack {
+                if currentIndex > 0 {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3)) {
+                            currentIndex -= 1
+                        }
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.roseGold)
+                    }
+                } else {
+                    Spacer().frame(width: 24)
+                }
+
+                Spacer()
+
+                Text("\(currentIndex + 1) of \(questions.count)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.textSoft)
+            }
+
+            // Progress track
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(hex: "#f0e0e0"))
+                        .frame(height: 5)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "#d4827a"), Color(hex: "#c9847a")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geo.size.width * CGFloat(currentIndex + 1) / CGFloat(questions.count), height: 5)
+                        .animation(.spring(response: 0.4), value: currentIndex)
+                }
+            }
+            .frame(height: 5)
         }
     }
-    
-    // Check if an answer is selected for the current question
-    private func isAnswerSelected() -> Bool {
-        switch currentQuestionIndex {
-        case 0: return !faithBackground.isEmpty
-        case 1: return !ageGroup.isEmpty
-        case 2: return !bibleGoal.isEmpty
-        case 3: return !readingFrequency.isEmpty
-        case 4: return !spiritualGoal.isEmpty
-        case 5: return !guidancePreference.isEmpty
-        case 6: return !biggestChallenge.isEmpty
-        default: return false
+
+    // MARK: - Question Header
+
+    private var questionHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(questions[currentIndex].emoji)
+                .font(.system(size: 40))
+
+            Text(questions[currentIndex].question)
+                .font(.custom("Georgia", size: 26))
+                .italic()
+                .foregroundColor(.textDark)
+                .lineSpacing(4)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(questions[currentIndex].subtitle)
+                .font(.system(size: 14))
+                .foregroundColor(.textSoft)
+                .lineSpacing(4)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Choices
+
+    private var choicesStack: some View {
+        VStack(spacing: 12) {
+            ForEach(questions[currentIndex].choices, id: \.self) { choice in
+                choiceButton(choice)
+            }
         }
     }
-    
-    // Check if a specific choice is selected
-    private func isSelected(choice: String) -> Bool {
-        switch currentQuestionIndex {
-        case 0: return choice == faithBackground
-        case 1: return choice == ageGroup
-        case 2: return choice == bibleGoal
-        case 3: return choice == readingFrequency
-        case 4: return choice == spiritualGoal
-        case 5: return choice == guidancePreference
-        case 6: return choice == biggestChallenge
-        default: return false
+
+    @ViewBuilder
+    private func choiceButton(_ choice: String) -> some View {
+        let isSelected = answers[currentIndex] == choice
+
+        Button(action: {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                answers[currentIndex] = choice
+                userDefaults.set(choice, forKey: questions[currentIndex].key)
+            }
+        }) {
+            HStack(spacing: 14) {
+                // Selection indicator
+                ZStack {
+                    Circle()
+                        .strokeBorder(isSelected ? Color.roseGold : Color(hex: "#e0d0d0"), lineWidth: 1.5)
+                        .frame(width: 22, height: 22)
+
+                    if isSelected {
+                        Circle()
+                            .fill(Color.roseGold)
+                            .frame(width: 12, height: 12)
+                    }
+                }
+
+                Text(choice)
+                    .font(.system(size: 15, weight: isSelected ? .medium : .regular))
+                    .foregroundColor(isSelected ? .textDark : .textSoft)
+                    .multilineTextAlignment(.leading)
+
+                Spacer()
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected ? Color.white : Color.white.opacity(0.6))
+                    .shadow(
+                        color: isSelected ? Color.roseGold.opacity(0.2) : Color.clear,
+                        radius: 8, x: 0, y: 3
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(
+                        isSelected ? Color.roseGold.opacity(0.4) : Color.clear,
+                        lineWidth: 1.5
+                    )
+            )
         }
+        .buttonStyle(PlainButtonStyle())
     }
-    
-    // Save the selected answer to UserDefaults
-    private func saveAnswer(choice: String) {
-        let key = questions[currentQuestionIndex].key
-        userDefaults.set(choice, forKey: key)
-        switch currentQuestionIndex {
-        case 0: faithBackground = choice
-        case 1: ageGroup = choice
-        case 2: bibleGoal = choice
-        case 3: readingFrequency = choice
-        case 4: spiritualGoal = choice
-        case 5: guidancePreference = choice
-        case 6: biggestChallenge = choice
-        default: break
+
+    // MARK: - Continue Button
+
+    private var continueButton: some View {
+        let isAnswered = !answers[currentIndex].isEmpty
+        let isLast = currentIndex == questions.count - 1
+
+        return Button(action: {
+            guard isAnswered else { return }
+            if isLast {
+                userDefaults.set(true, forKey: "hasCompletedOnboardingQuestions")
+                navigateToHome = true
+            } else {
+                withAnimation(.spring(response: 0.3)) {
+                    currentIndex += 1
+                }
+            }
+        }) {
+            HStack(spacing: 10) {
+                Text(isLast ? "Begin My Journey" : "Continue")
+                    .font(.system(size: 16, weight: .semibold))
+                if !isLast {
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(
+                Group {
+                    if isAnswered {
+                        LinearGradient(
+                            colors: [Color(hex: "#d4827a"), Color(hex: "#c9847a")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    } else {
+                        LinearGradient(
+                            colors: [Color(hex: "#e0cece"), Color(hex: "#ddd0d0")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    }
+                }
+            )
+            .cornerRadius(18)
+            .shadow(
+                color: isAnswered ? Color.roseGold.opacity(0.3) : Color.clear,
+                radius: 10, x: 0, y: 4
+            )
         }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(!isAnswered)
+        .padding(.top, 8)
     }
-    
-    // Load saved answers from UserDefaults
+
+    // MARK: - Helpers
+
     private func loadSavedAnswers() {
-        faithBackground = userDefaults.string(forKey: faithBackgroundKey) ?? ""
-        ageGroup = userDefaults.string(forKey: ageGroupKey) ?? ""
-        bibleGoal = userDefaults.string(forKey: bibleGoalKey) ?? ""
-        readingFrequency = userDefaults.string(forKey: readingFrequencyKey) ?? ""
-        spiritualGoal = userDefaults.string(forKey: spiritualGoalKey) ?? ""
-        guidancePreference = userDefaults.string(forKey: guidancePreferenceKey) ?? ""
-        biggestChallenge = userDefaults.string(forKey: biggestChallengeKey) ?? ""
-    }
-}
-
-// Subview for Answer Button
-struct AnswerButton: View {
-    let choice: String
-    let isSelected: Bool
-    let onSelect: () -> Void
-    
-    var body: some View {
-        Button(action: onSelect) {
-            Text(choice)
-                .font(.system(size: 18, weight: .regular, design: .serif))
-                .foregroundColor(isSelected ? .white : .black)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-                .frame(maxWidth: .infinity)
-                .background(isSelected ? Color.black : Color.white)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.black, lineWidth: 1)
-                )
+        for (i, q) in questions.enumerated() {
+            answers[i] = userDefaults.string(forKey: q.key) ?? ""
         }
     }
 }
 
-#Preview("iPhone 14") {
-    OnboardingQuestionsView()
-        .environmentObject(AuthenticationState())
-}
-
-#Preview("iPad Pro") {
-    OnboardingQuestionsView()
-        .environmentObject(AuthenticationState())
+#Preview {
+    NavigationStack {
+        OnboardingQuestionsView()
+            .environmentObject(AuthenticationState())
+    }
 }
