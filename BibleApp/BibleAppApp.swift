@@ -13,6 +13,7 @@ struct BibleAppApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(authState)
+                .preferredColorScheme(.light)
         }
     }
 }
