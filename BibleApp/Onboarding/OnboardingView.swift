@@ -45,7 +45,6 @@ struct MissionScreen: View {
 
     var body: some View {
         ZStack {
-            // Background gradient
             LinearGradient(
                 colors: [Color(hex: "#fde8e8"), Color(hex: "#fdf0f0"), Color(hex: "#ebe8f5")],
                 startPoint: .topLeading,
@@ -53,7 +52,6 @@ struct MissionScreen: View {
             )
             .ignoresSafeArea()
 
-            // Decorative blurred circles
             Circle()
                 .fill(Color(hex: "#f5c5be").opacity(0.3))
                 .frame(width: 340, height: 340)
@@ -87,14 +85,14 @@ struct MissionScreen: View {
 
                     // ── Headline ─────────────────────────
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Made for Moms,\nRooted in Scripture.")
-                            .font(.custom("Georgia", size: 34))
+                        Text("Bible Promises\nfor Moms.")
+                            .font(.custom("Georgia", size: 36))
                             .italic()
                             .foregroundColor(Color(hex: "#3d2020"))
                             .lineSpacing(4)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Daily devotionals, Bible study, and gentle encouragement — all designed for your motherhood journey.")
+                        Text("Verses of hope, strength, and encouragement — written for the heart of a Christian mother.")
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(Color(hex: "#9a6b6b"))
                             .lineSpacing(5)
@@ -106,16 +104,17 @@ struct MissionScreen: View {
 
                     // ── Feature pills ─────────────────────
                     VStack(spacing: 12) {
-                        featurePill(icon: "heart.text.square", text: "Devotionals tailored to your season of motherhood")
-                        featurePill(icon: "book.closed", text: "Full KJV Bible with verse highlighting")
-                        featurePill(icon: "sparkles", text: "Daily hope & strength, one verse at a time")
+                        featurePill(icon: "heart.text.square",  text: "Inspirational verses matched to how you feel today")
+                        featurePill(icon: "book.closed",        text: "Full KJV Bible with personal verse highlighting")
+                        featurePill(icon: "sparkles",           text: "Daily devotionals for every season of motherhood")
+                        featurePill(icon: "hands.sparkles",     text: "Gentle encouragement when you need it most")
                     }
                     .padding(.horizontal, 28)
                     .padding(.bottom, 40)
                     .opacity(contentOpacity)
 
                     // ── Community badge ───────────────────
-                    Text("Join thousands of moms deepening their faith daily.")
+                    Text("Thousands of Christian moms finding daily hope in God's Word.")
                         .font(.custom("Georgia", size: 17))
                         .italic()
                         .foregroundColor(Color(hex: "#7a5555"))
@@ -135,8 +134,6 @@ struct MissionScreen: View {
 
                     // ── Buttons ───────────────────────────
                     VStack(spacing: 14) {
-
-                        // Sign up with email — primary
                         Button(action: onSignIn) {
                             HStack(spacing: 10) {
                                 Image(systemName: "envelope.fill")
@@ -159,7 +156,6 @@ struct MissionScreen: View {
                         }
                         .buttonStyle(PlainButtonStyle())
 
-                        // Continue without account — secondary
                         Button(action: onContinueAsGuest) {
                             Text("Continue without an account")
                                 .font(.system(size: 15, weight: .medium))
@@ -229,8 +225,6 @@ struct MissionScreen: View {
         )
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     OnboardingView()

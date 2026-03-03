@@ -114,7 +114,6 @@ struct SettingsView: View {
                             styledPickerRow("Biggest Challenge", selection: $biggestChallenge, options: biggestChallenges, key: biggestChallengeKey)
                         }
 
-                        // Sign out / delete
                         settingsCard {
                             sectionHeader("Account Actions", icon: "gearshape")
 
@@ -187,7 +186,6 @@ struct SettingsView: View {
                         linkRow(label: "Website", url: websiteURL)
                     }
 
-                    // Version
                     Text("Dear Mom · Bible for Moms")
                         .font(.system(size: 11))
                         .foregroundColor(.textSoft)
@@ -276,6 +274,8 @@ struct SettingsView: View {
                 .frame(width: 110, alignment: .leading)
             Spacer()
             Picker("", selection: selection) {
+                // Placeholder option — matches the default "" value so no warning
+                Text("Select…").tag("").foregroundStyle(Color.textSoft)
                 ForEach(options, id: \.self) { option in
                     Text(option).tag(option)
                 }
@@ -335,7 +335,9 @@ struct SettingsView: View {
         let keys = [nameKey, ageRangeKey, emailKey, denominationKey, churchKey,
                     bibleGoalKey, readingFrequencyKey, spiritualGoalKey,
                     guidancePreferenceKey, biggestChallengeKey,
-                    "ChecklistTasks", "CompletedDays", "CompletedTaskCount", "CurrentWeek"]
+                    "ChecklistTasks", "CompletedDays", "CompletedTaskCount", "CurrentWeek",
+                    "UserMotherhoodStage", "UserCurrentSeason", "UserQuietTime",
+                    "UserCurrentNeed", "UserFaithJourney", "UserReason"]
         keys.forEach { userDefaults.removeObject(forKey: $0) }
     }
 }
