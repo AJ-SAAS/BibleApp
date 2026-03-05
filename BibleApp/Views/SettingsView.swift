@@ -26,10 +26,10 @@ struct SettingsView: View {
     let guidancePreferences = ["Daily verses & tasks", "In-depth Bible study", "Encouragement from community", "Guided prayers"]
     let biggestChallenges = ["Staying consistent", "Feeling disconnected", "Life's challenges", "Understanding the Bible"]
 
-    private let privacyPolicyURL = URL(string: "https://www.thedailybible.app/r/privacy")!
-    private let websiteURL = URL(string: "https://www.thedailybible.app/")!
-    private let termsOfUseURL = URL(string: "https://www.thedailybible.app/r/terms")!
-    private let supportEmailURL = URL(string: "mailto:thedailybibleappsupport@gmail.com?subject=Daily%20Bible%20App%20Support")!
+    private let privacyPolicyURL = URL(string: "https://www.faithformoms.com/r/privacy")!
+    private let websiteURL = URL(string: "https://www.faithformoms.com/")!
+    private let termsOfUseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+    private let supportEmailURL = URL(string: "mailto:faithformoms@gmail.com?subject=Daily%20Bible%20App%20Support")!
 
     private let userDefaults = UserDefaults.standard
     private let nameKey = "UserName"
