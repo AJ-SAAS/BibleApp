@@ -1,0 +1,26 @@
+[
+  {
+    "id": "peace_day_1",
+    "journeyID": "peace_moms",
+    "dayNumber": 1,
+    "title": "Be Still and Know",
+    "verse": "Be still, and know that I am God.",
+    "scriptureReference": "Psalm 46:10",
+    "reflection": "Even in the chaos of motherhood, God invites you to pause and rest in His presence.",
+    "prayer": "Lord, help me slow down and remember You are with me today.",
+    "isLocked": false
+  },
+
+  {
+    "id": "peace_day_2",
+    "journeyID": "peace_moms",
+    "dayNumber": 2,
+    "title": "He Gives Rest",
+    "verse": "Come to me, all who are weary.",
+    "scriptureReference": "Matthew 11:28",
+    "reflection": "You were never meant to carry motherhood alone.",
+    "prayer": "Jesus, help me release my burdens to You.",
+    "isLocked": true
+  }
+]
+

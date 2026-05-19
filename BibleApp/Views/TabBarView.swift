@@ -5,64 +5,108 @@ struct TabBarView: View {
     @State private var selectedTab: Int = 0
 
     var body: some View {
+
         TabView(selection: $selectedTab) {
 
-            // ── Home ──
+            // MARK: - Today
             NavigationStack {
                 HomeView()
                     .environmentObject(authState)
                     .navigationBarHidden(true)
             }
             .tabItem {
-                Label("Home", systemImage: selectedTab == 0 ? "house.fill" : "house")
+                Label(
+                    "Today",
+                    systemImage: selectedTab == 0
+                    ? "sun.max.fill"
+                    : "sun.max"
+                )
             }
             .tag(0)
 
-            // ── Browse ──
+            // MARK: - Journeys
             NavigationStack {
-                BrowseView()
+                JourneyBrowseView()
                     .environmentObject(authState)
             }
             .tabItem {
-                Label("Browse", systemImage: selectedTab == 1 ? "books.vertical.fill" : "books.vertical")
+                Label(
+                    "Journeys",
+                    systemImage: selectedTab == 1
+                    ? "heart.text.square.fill"
+                    : "heart.text.square"
+                )
             }
             .tag(1)
 
-            // ── Bible Study ──
+            // MARK: - Bible
             NavigationStack {
                 BibleView()
                     .environmentObject(authState)
             }
             .tabItem {
-                Label("Bible Study", systemImage: selectedTab == 2 ? "book.fill" : "book")
+                Label(
+                    "Bible",
+                    systemImage: selectedTab == 2
+                    ? "book.fill"
+                    : "book"
+                )
             }
             .tag(2)
-            
-            // ── Settings ──
+
+            // MARK: - Saved
+            NavigationStack {
+                SavedView()
+                    .environmentObject(authState)
+            }
+            .tabItem {
+                Label(
+                    "Saved",
+                    systemImage: selectedTab == 3
+                    ? "bookmark.fill"
+                    : "bookmark"
+                )
+            }
+            .tag(3)
+
+            // MARK: - Settings
             NavigationStack {
                 SettingsView()
                     .environmentObject(authState)
-                    .navigationTitle("Settings")
-                    .navigationBarBackButtonHidden(true)
             }
             .tabItem {
-                Label("Settings", systemImage: "gear")
+                Label(
+                    "Settings",
+                    systemImage: selectedTab == 4
+                    ? "gearshape.fill"
+                    : "gearshape"
+                )
             }
-            .tag(3)
+            .tag(4)
         }
         .accentColor(Color(hex: "#2c1f14"))
         .onAppear {
+
             let appearance = UITabBarAppearance()
             appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(Color(hex: "#faf6f0"))
 
-            appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color(hex: "#c4b5a5"))
+            appearance.backgroundColor = UIColor(
+                Color(hex: "#faf6f0")
+            )
+
+            // MARK: Normal
+            appearance.stackedLayoutAppearance.normal.iconColor =
+            UIColor(Color(hex: "#c4b5a5"))
+
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
                 .foregroundColor: UIColor(Color(hex: "#c4b5a5")),
                 .font: UIFont.systemFont(ofSize: 10, weight: .medium)
             ]
 
-            appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color(hex: "#2c1f14"))
+            // MARK: Selected
+            appearance.stackedLayoutAppearance.selected.iconColor =
+            UIColor(Color(hex: "#2c1f14"))
+
             appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
                 .foregroundColor: UIColor(Color(hex: "#2c1f14")),
                 .font: UIFont.systemFont(ofSize: 10, weight: .semibold)
@@ -72,9 +116,4 @@ struct TabBarView: View {
             UITabBar.appearance().scrollEdgeAppearance = appearance
         }
     }
-}
-
-#Preview("iPhone 15") {
-    TabBarView()
-        .environmentObject(AuthenticationState())
 }
