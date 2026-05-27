@@ -1,7 +1,6 @@
 import SwiftUI
 
 // MARK: - Question Model
-
 struct OnboardingQuestion {
     let question: String
     let subtitle: String
@@ -11,9 +10,10 @@ struct OnboardingQuestion {
 }
 
 // MARK: - OnboardingQuestionsView
-
 struct OnboardingQuestionsView: View {
     @EnvironmentObject var authState: AuthenticationState
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    
     @State private var currentIndex = 0
     @State private var navigateToHome = false
     @State private var answers: [String] = Array(repeating: "", count: 6)
@@ -68,7 +68,6 @@ struct OnboardingQuestionsView: View {
 
     var body: some View {
         ZStack {
-            // Background gradient
             LinearGradient(
                 colors: [Color(hex: "#fde8e8"), Color(hex: "#fdf0f0"), Color(hex: "#ebe8f5")],
                 startPoint: .topLeading,
@@ -77,16 +76,12 @@ struct OnboardingQuestionsView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-
-                // ── Progress bar ─────────────────────────
                 progressBar
                     .padding(.top, 16)
                     .padding(.horizontal, 24)
 
-                // ── Question card ─────────────────────────
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 28) {
-
                         questionHeader
                             .padding(.top, 32)
 
@@ -109,7 +104,6 @@ struct OnboardingQuestionsView: View {
     }
 
     // MARK: - Progress Bar
-
     private var progressBar: some View {
         VStack(spacing: 10) {
             HStack {
@@ -134,7 +128,6 @@ struct OnboardingQuestionsView: View {
                     .foregroundColor(.textSoft)
             }
 
-            // Progress track
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 4)
@@ -142,15 +135,8 @@ struct OnboardingQuestionsView: View {
                         .frame(height: 5)
 
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color(hex: "#d4827a"), Color(hex: "#c9847a")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                        .fill(LinearGradient(colors: [Color(hex: "#d4827a"), Color(hex: "#c9847a")], startPoint: .leading, endPoint: .trailing))
                         .frame(width: geo.size.width * CGFloat(currentIndex + 1) / CGFloat(questions.count), height: 5)
-                        .animation(.spring(response: 0.4), value: currentIndex)
                 }
             }
             .frame(height: 5)
@@ -158,7 +144,6 @@ struct OnboardingQuestionsView: View {
     }
 
     // MARK: - Question Header
-
     private var questionHeader: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(questions[currentIndex].emoji)
@@ -181,7 +166,6 @@ struct OnboardingQuestionsView: View {
     }
 
     // MARK: - Choices
-
     private var choicesStack: some View {
         VStack(spacing: 12) {
             ForEach(questions[currentIndex].choices, id: \.self) { choice in
@@ -201,7 +185,6 @@ struct OnboardingQuestionsView: View {
             }
         }) {
             HStack(spacing: 14) {
-                // Selection indicator
                 ZStack {
                     Circle()
                         .strokeBorder(isSelected ? Color.roseGold : Color(hex: "#e0d0d0"), lineWidth: 1.5)
@@ -226,32 +209,28 @@ struct OnboardingQuestionsView: View {
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(isSelected ? Color.white : Color.white.opacity(0.6))
-                    .shadow(
-                        color: isSelected ? Color.roseGold.opacity(0.2) : Color.clear,
-                        radius: 8, x: 0, y: 3
-                    )
+                    .shadow(color: isSelected ? Color.roseGold.opacity(0.2) : Color.clear, radius: 8, x: 0, y: 3)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(
-                        isSelected ? Color.roseGold.opacity(0.4) : Color.clear,
-                        lineWidth: 1.5
-                    )
+                    .strokeBorder(isSelected ? Color.roseGold.opacity(0.4) : Color.clear, lineWidth: 1.5)
             )
         }
         .buttonStyle(PlainButtonStyle())
     }
 
     // MARK: - Continue Button
-
     private var continueButton: some View {
         let isAnswered = !answers[currentIndex].isEmpty
         let isLast = currentIndex == questions.count - 1
 
         return Button(action: {
             guard isAnswered else { return }
+            
             if isLast {
-                userDefaults.set(true, forKey: "hasCompletedOnboardingQuestions")
+                // FINAL STEP - Mark onboarding as complete
+                userDefaults.set(true, forKey: "hasCompletedOnboarding")
+                hasCompletedOnboarding = true
                 navigateToHome = true
             } else {
                 withAnimation(.spring(response: 0.3)) {
@@ -273,32 +252,19 @@ struct OnboardingQuestionsView: View {
             .background(
                 Group {
                     if isAnswered {
-                        LinearGradient(
-                            colors: [Color(hex: "#d4827a"), Color(hex: "#c9847a")],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                        LinearGradient(colors: [Color(hex: "#d4827a"), Color(hex: "#c9847a")], startPoint: .leading, endPoint: .trailing)
                     } else {
-                        LinearGradient(
-                            colors: [Color(hex: "#e0cece"), Color(hex: "#ddd0d0")],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                        LinearGradient(colors: [Color(hex: "#e0cece"), Color(hex: "#ddd0d0")], startPoint: .leading, endPoint: .trailing)
                     }
                 }
             )
             .cornerRadius(18)
-            .shadow(
-                color: isAnswered ? Color.roseGold.opacity(0.3) : Color.clear,
-                radius: 10, x: 0, y: 4
-            )
+            .shadow(color: isAnswered ? Color.roseGold.opacity(0.3) : Color.clear, radius: 10, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(!isAnswered)
         .padding(.top, 8)
     }
-
-    // MARK: - Helpers
 
     private func loadSavedAnswers() {
         for (i, q) in questions.enumerated() {

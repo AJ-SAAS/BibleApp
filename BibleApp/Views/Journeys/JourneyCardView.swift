@@ -1,15 +1,10 @@
-// MARK: - JourneyCardView.swift
-
 import SwiftUI
 
 struct JourneyCardView: View {
-
     let journey: Journey
 
     var body: some View {
-
         ZStack(alignment: .bottomLeading) {
-
             Image(journey.imageName)
                 .resizable()
                 .scaledToFill()
@@ -23,51 +18,41 @@ struct JourneyCardView: View {
                 endPoint: .bottom
             )
 
-            // Title only — bottom left
-            Text(journey.category)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.bottom, 12)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(journey.title)
+                    .font(.custom("Georgia", size: 18))
+                    .italic()
+                    .foregroundColor(.white)
+                    .lineLimit(2)
 
-            // Premium / Free badge — top left
+                Text(journey.category)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+            }
+            .padding(16)
+
+            // Premium badge
             VStack {
                 HStack {
-                    Text(journey.isPremium ? "✨ Premium" : "🌿 Free")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            journey.isPremium
-                                ? Color.black.opacity(0.45)
-                                : Color(hex: "#3c8c5a").opacity(0.9)
-                        )
-                        .cornerRadius(8)
+                    if journey.isPremium {
+                        Text("✨ Premium")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.black.opacity(0.5))
+                            .cornerRadius(8)
+                    }
                     Spacer()
                 }
                 Spacer()
             }
-            .padding(10)
-
-            // Heart button — top right
-            VStack {
-                HStack {
-                    Spacer()
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(.white)
-                        .frame(width: 28, height: 28)
-                        .background(.white.opacity(0.25))
-                        .clipShape(Circle())
-                }
-                Spacer()
-            }
-            .padding(10)
+            .padding(12)
         }
         .aspectRatio(1, contentMode: .fit)
-        .cornerRadius(20)
+        .cornerRadius(22)
         .clipped()
+        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
 

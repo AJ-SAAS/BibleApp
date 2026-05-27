@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var authState: AuthenticationState
-    @State private var hasCompletedOnboardingQuestions: Bool = UserDefaults.standard.bool(forKey: "hasCompletedOnboardingQuestions")
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showSplashView: Bool = true
 
     var body: some View {
@@ -15,34 +15,27 @@ struct ContentView: View {
                         .onDisappear {
                             showSplashView = false
                         }
-                } else if (authState.isAuthenticated || authState.isGuest) && !hasCompletedOnboardingQuestions {
-                    OnboardingQuestionsView()
+                }
+                else if !hasCompletedOnboarding {
+                    OnboardingView()
                         .environmentObject(authState)
                         .navigationBarBackButtonHidden(true)
-                } else if authState.isAuthenticated || authState.isGuest {
+                }
+                else if authState.isAuthenticated || authState.isGuest {
                     TabBarView()
                         .environmentObject(authState)
                         .navigationBarBackButtonHidden(true)
-                } else {
+                }
+                else {
                     OnboardingView()
                         .environmentObject(authState)
                         .navigationBarBackButtonHidden(true)
                 }
             }
         }
-        .onChange(of: authState.isAuthenticated) { _, _ in
-            hasCompletedOnboardingQuestions = UserDefaults.standard.bool(forKey: "hasCompletedOnboardingQuestions")
-        }
-        .onChange(of: authState.isGuest) { _, newValue in
-            if newValue && !authState.isAuthenticated {
-                UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
-                hasCompletedOnboardingQuestions = false
-            }
-        }
         .onAppear {
-            // Always show splash on every app open
             showSplashView = true
-            hasCompletedOnboardingQuestions = UserDefaults.standard.bool(forKey: "hasCompletedOnboardingQuestions")
+            hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         }
     }
 }

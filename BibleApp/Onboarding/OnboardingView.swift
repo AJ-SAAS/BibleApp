@@ -2,33 +2,18 @@ import SwiftUI
 
 struct OnboardingView: View {
     @EnvironmentObject var authState: AuthenticationState
-    @State private var navigateToAuth = false
-    @State private var navigateToQuestions = false
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
-        NavigationStack {
-            MissionScreen(
-                onContinueAsGuest: {
-                    UserDefaults.standard.set(false, forKey: "hasCompletedOnboardingQuestions")
-                    authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
-                    navigateToQuestions = true
-                },
-                onSignIn: {
-                    navigateToAuth = true
-                }
-            )
-            .navigationDestination(isPresented: $navigateToAuth) {
-                AuthView()
-                    .environmentObject(authState)
-                    .navigationBarBackButtonHidden(true)
+        MissionScreen(
+            onContinueAsGuest: {
+                authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
+                // IMPORTANT: Do NOT set hasCompletedOnboarding = true here
+            },
+            onSignIn: {
+                // Navigation to AuthView is handled inside MissionScreen if needed
             }
-            .navigationDestination(isPresented: $navigateToQuestions) {
-                OnboardingQuestionsView()
-                    .environmentObject(authState)
-                    .navigationBarBackButtonHidden(true)
-            }
-            .navigationBarBackButtonHidden(true)
-        }
+        )
     }
 }
 
@@ -67,7 +52,6 @@ struct MissionScreen: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
 
-                    // ── Logo ─────────────────────────────
                     HStack {
                         Image("Bibleformomslogo")
                             .resizable()
@@ -83,7 +67,6 @@ struct MissionScreen: View {
                     .padding(.top, 56)
                     .padding(.bottom, 28)
 
-                    // ── Headline ─────────────────────────
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Bible Promises\nfor Moms.")
                             .font(.custom("Georgia", size: 36))
@@ -102,18 +85,16 @@ struct MissionScreen: View {
                     .padding(.bottom, 36)
                     .opacity(contentOpacity)
 
-                    // ── Feature pills ─────────────────────
                     VStack(spacing: 12) {
-                        featurePill(icon: "heart.text.square",  text: "Inspirational verses matched to how you feel today")
-                        featurePill(icon: "book.closed",        text: "Full KJV Bible with personal verse highlighting")
-                        featurePill(icon: "sparkles",           text: "Daily devotionals for every season of motherhood")
-                        featurePill(icon: "hands.sparkles",     text: "Gentle encouragement when you need it most")
+                        featurePill(icon: "heart.text.square", text: "Inspirational verses matched to how you feel today")
+                        featurePill(icon: "book.closed", text: "Full KJV Bible with personal verse highlighting")
+                        featurePill(icon: "sparkles", text: "Daily devotionals for every season of motherhood")
+                        featurePill(icon: "hands.sparkles", text: "Gentle encouragement when you need it most")
                     }
                     .padding(.horizontal, 28)
                     .padding(.bottom, 40)
                     .opacity(contentOpacity)
 
-                    // ── Community badge ───────────────────
                     Text("Thousands of Christian moms finding daily hope in God's Word.")
                         .font(.custom("Georgia", size: 17))
                         .italic()
@@ -132,7 +113,6 @@ struct MissionScreen: View {
                         .padding(.bottom, 40)
                         .opacity(contentOpacity)
 
-                    // ── Buttons ───────────────────────────
                     VStack(spacing: 14) {
                         Button(action: onSignIn) {
                             HStack(spacing: 10) {
@@ -154,7 +134,6 @@ struct MissionScreen: View {
                             .cornerRadius(18)
                             .shadow(color: Color(hex: "#c9847a").opacity(0.35), radius: 10, x: 0, y: 4)
                         }
-                        .buttonStyle(PlainButtonStyle())
 
                         Button(action: onContinueAsGuest) {
                             Text("Continue without an account")
@@ -169,13 +148,11 @@ struct MissionScreen: View {
                                         .strokeBorder(Color(hex: "#f0d0cc"), lineWidth: 1.5)
                                 )
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
                     .padding(.horizontal, 28)
                     .opacity(buttonsOpacity)
 
-                    // ── Legal ─────────────────────────────
-                    Text("By continuing, you agree to our Privacy Policy and Terms of Use. Your information is handled with care.")
+                    Text("By continuing, you agree to our Privacy Policy and Terms of Use.")
                         .font(.system(size: 11))
                         .foregroundColor(Color(hex: "#b89090"))
                         .multilineTextAlignment(.center)

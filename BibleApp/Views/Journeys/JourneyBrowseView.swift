@@ -1,5 +1,3 @@
-// MARK: - JourneyBrowseView.swift
-
 import SwiftUI
 
 struct JourneyBrowseView: View {
@@ -22,28 +20,27 @@ struct JourneyBrowseView: View {
         if selectedCategory == "All" {
             return journeys
         }
-        return journeys.filter {
-            $0.category == selectedCategory
-        }
+        return journeys.filter { $0.category == selectedCategory }
     }
 
     var body: some View {
-
         ScrollView(showsIndicators: false) {
-
             VStack(alignment: .leading, spacing: 20) {
 
-                // MARK: Header
+                // Header
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Journeys")
-                        .font(.largeTitle.bold())
+                        .font(.custom("Georgia", size: 34))
+                        .italic()
+                        .foregroundColor(.textDark)
 
                     Text("Find encouragement for where you are today.")
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 16))
+                        .foregroundColor(.textSoft)
                 }
                 .padding(.horizontal)
 
-                // MARK: Categories
+                // Categories
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(categories, id: \.self) { category in
@@ -51,18 +48,16 @@ struct JourneyBrowseView: View {
                                 selectedCategory = category
                             } label: {
                                 Text(category)
-                                    .font(.subheadline.weight(.semibold))
-                                    .padding(.horizontal, 16)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .padding(.horizontal, 18)
                                     .padding(.vertical, 10)
                                     .background(
                                         selectedCategory == category
-                                            ? Color(hex: "#2c1f14")
-                                            : Color(hex: "#f1ece5")
+                                        ? Color.roseGold
+                                        : Color.blushLight
                                     )
                                     .foregroundColor(
-                                        selectedCategory == category
-                                            ? .white
-                                            : Color(hex: "#2c1f14")
+                                        selectedCategory == category ? .white : .textDark
                                     )
                                     .cornerRadius(20)
                             }
@@ -71,8 +66,8 @@ struct JourneyBrowseView: View {
                     .padding(.horizontal)
                 }
 
-                // MARK: Grid
-                LazyVGrid(columns: columns, spacing: 12) {
+                // Grid
+                LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(filteredJourneys) { journey in
                         NavigationLink {
                             JourneyDetailView(journey: journey)
@@ -86,7 +81,7 @@ struct JourneyBrowseView: View {
             }
             .padding(.top)
         }
-        .background(Color(hex: "#faf6f0"))
+        .background(Color.blushWhite)
         .navigationBarHidden(true)
     }
 }
