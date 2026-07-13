@@ -15,7 +15,6 @@ final class PurchaseViewModel: ObservableObject {
     private var observationTask: Task<Void, Never>?
 
     init() {
-
         observeCustomerInfo()
 
         Task {
@@ -41,124 +40,76 @@ final class PurchaseViewModel: ObservableObject {
     // MARK: - Load Products
 
     func loadOfferings() async {
-
         isLoading = true
-
-        defer {
-            isLoading = false
-        }
+        defer { isLoading = false }
 
         do {
-
             let offerings = try await subscriptionService.getOfferings()
-
             currentOffering = offerings.current
-
         } catch {
-
             errorMessage = error.localizedDescription
-
         }
-
     }
 
     // MARK: - Purchase
 
     func purchase(_ package: Package) async {
-
         isLoading = true
-
-        defer {
-            isLoading = false
-        }
+        defer { isLoading = false }
 
         do {
-
             let customerInfo = try await subscriptionService.purchase(package: package)
-
             updatePremiumStatus(customerInfo)
-
         } catch let error as ErrorCode {
-
             if error == .purchaseCancelledError {
                 return
             }
-
             errorMessage = error.localizedDescription
-
         } catch {
-
             errorMessage = error.localizedDescription
-
         }
-
     }
 
     // MARK: - Restore
 
     func restorePurchases() async {
-
         isLoading = true
-
-        defer {
-            isLoading = false
-        }
+        defer { isLoading = false }
 
         do {
-
             let customerInfo = try await subscriptionService.restorePurchases()
-
             updatePremiumStatus(customerInfo)
-
         } catch {
-
             errorMessage = error.localizedDescription
-
         }
-
     }
 
     // MARK: - Refresh Status
 
     func refreshPremiumStatus() async {
-
         do {
-
             let customerInfo = try await subscriptionService.customerInfo()
-
             updatePremiumStatus(customerInfo)
-
         } catch {
-
             print(error.localizedDescription)
-
         }
-
     }
 
     // MARK: - Observe RevenueCat
-    // customerInfoStream is an AsyncStream, not a Combine publisher —
-    // consume it with a for-await loop inside a Task, not .sink.
-
     private func observeCustomerInfo() {
-
         observationTask = Task { [weak self] in
             for await customerInfo in Purchases.shared.customerInfoStream {
                 guard let self else { return }
                 self.updatePremiumStatus(customerInfo)
             }
         }
-
     }
 
     // MARK: - Premium Status
 
     private func updatePremiumStatus(_ customerInfo: CustomerInfo) {
-
         isPremium =
             customerInfo.entitlements
                 .active[Constants.premiumEntitlement] != nil
-
     }
-
 }

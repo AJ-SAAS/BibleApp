@@ -35,11 +35,12 @@ struct PaywallView: View {
 
     var onCompletion: ((Bool) -> Void)? = nil
 
+    // Benefit-driven copy instead of feature labels.
     private let features: [String] = [
-        "Full devotional Journey library",
-        "Daily verses picked for you",
-        "Save your favorite promises",
-        "Gentle daily reminders"
+        "30-day journeys for every season of motherhood",
+        "A verse made for exactly how you're feeling today",
+        "Never lose the promise that spoke to your heart",
+        "A gentle nudge to meet God, even on the hard days"
     ]
 
     var body: some View {
@@ -70,6 +71,8 @@ struct PaywallView: View {
 
                     continueButton
 
+                    cancelAnytimeText
+
                     footerLinks
                 }
                 .padding(.horizontal, 24)
@@ -84,6 +87,12 @@ struct PaywallView: View {
             }
         }
         .task { selectDefaultPackageIfNeeded() }
+        .onAppear {
+            // Stronger pre-selection guarantee
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                selectDefaultPackageIfNeeded()
+            }
+        }
         .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) { viewModel.errorMessage = nil }
         } message: { Text(viewModel.errorMessage ?? "Please try again.") }
@@ -93,21 +102,49 @@ struct PaywallView: View {
         Binding(get: { viewModel.errorMessage != nil }, set: { if !$0 { viewModel.errorMessage = nil }})
     }
 
+    // Prefers annual — made more robust
     private func selectDefaultPackageIfNeeded() {
-        guard selectedPackage == nil else { return }
-        selectedPackage = viewModel.annualPackage ?? viewModel.weeklyPackage
+        guard selectedPackage == nil, let offering = viewModel.currentOffering, !offering.availablePackages.isEmpty else {
+            return
+        }
+        
+        if let annual = viewModel.annualPackage {
+            selectedPackage = annual
+            return
+        }
+        
+        if let annualFallback = offering.availablePackages.first(where: { $0.packageType == .annual }) {
+            selectedPackage = annualFallback
+            return
+        }
+        
+        if let yearly = offering.availablePackages.first(where: {
+            $0.packageType == .annual ||
+            $0.identifier.lowercased().contains("annual") ||
+            $0.identifier.lowercased().contains("year")
+        }) {
+            selectedPackage = yearly
+            return
+        }
+        
+        selectedPackage = viewModel.weeklyPackage ?? offering.availablePackages.first
     }
 
-    // MARK: - Background
-
+    // MARK: - Background (Cooler & Softer Gradient)
     private var backgroundGradient: some View {
-        LinearGradient(colors: [Color.bfmCream, Color.bfmBlush.opacity(0.6), Color.bfmPeach.opacity(0.4)],
-                       startPoint: .top, endPoint: .bottom)
+        LinearGradient(
+            colors: [
+                Color.bfmCream,
+                Color(red: 0.98, green: 0.92, blue: 0.95),   // Soft cool pink
+                Color(red: 0.95, green: 0.88, blue: 0.97)    // Light lavender
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
         .ignoresSafeArea()
     }
 
     // MARK: - Top bar
-
     private var topBar: some View {
         HStack {
             Button { dismiss() } label: {
@@ -124,62 +161,69 @@ struct PaywallView: View {
     }
 
     // MARK: - Logo
-
     private var logo: some View {
-        Image("Bibleformomslogo")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 46)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .shadow(color: Color.bfmRoseDeep.opacity(0.18), radius: 6, y: 3)
-            .scaleEffect(logoAppeared ? (logoPulse ? 1.04 : 1.0) : 0.7)
-            .opacity(logoAppeared ? 1 : 0)
-            .onAppear {
-                withAnimation(.spring(response: 0.55, dampingFraction: 0.65)) {
-                    logoAppeared = true
-                }
-                withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true).delay(0.6)) {
-                    logoPulse = true
-                }
+        ZStack {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.bfmRose.opacity(0.35), Color.bfmRoseDeep.opacity(0.45)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 92, height: 92)
+                .shadow(color: Color.bfmRoseDeep.opacity(0.25), radius: 10, y: 5)
+
+            Image("Bibleformomslogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 74)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .scaleEffect(logoAppeared ? (logoPulse ? 1.04 : 1.0) : 0.7)
+        .opacity(logoAppeared ? 1 : 0)
+        .onAppear {
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.65)) {
+                logoAppeared = true
             }
+            withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true).delay(0.6)) {
+                logoPulse = true
+            }
+        }
     }
 
     // MARK: - Headline
-
     private var headline: some View {
         Text("Never Miss a Moment\nof Faith")
             .font(.system(size: 27, weight: .bold, design: .serif))
             .foregroundColor(.bfmBrown)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    // MARK: - Feature list (checkmarks, like the reference)
-
+    // MARK: - Feature list
     private var featureList: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             ForEach(features, id: \.self) { feature in
                 HStack(spacing: 12) {
                     ZStack {
-                        Circle().fill(Color.bfmRoseDeep).frame(width: 24, height: 24)
+                        Circle().fill(Color.bfmRoseDeep).frame(width: 28, height: 28)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 13, weight: .heavy))
                             .foregroundColor(.white)
                     }
                     Text(feature)
-                        .font(.system(size: 15.5, weight: .medium))
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundColor(.bfmBrown)
                         .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     // MARK: - Package selector
-
     private var packageSelector: some View {
         VStack(spacing: 12) {
             if let offering = viewModel.currentOffering {
@@ -197,8 +241,7 @@ struct PaywallView: View {
         }
     }
 
-    // MARK: - Continue button
-
+    // MARK: - Continue button (More "Pop")
     private var continueButton: some View {
         Button {
             guard let package = selectedPackage else { return }
@@ -216,17 +259,33 @@ struct PaywallView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(LinearGradient(colors: [Color.bfmRose, Color.bfmRoseDeep], startPoint: .leading, endPoint: .trailing))
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.98, green: 0.45, blue: 0.55),  // Vibrant rose
+                        Color(red: 0.85, green: 0.25, blue: 0.45)   // Deeper rich rose
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
             .foregroundColor(.white)
             .clipShape(Capsule())
-            .shadow(color: Color.bfmRoseDeep.opacity(0.3), radius: 10, y: 5)
+            .shadow(color: Color(red: 0.85, green: 0.25, blue: 0.45).opacity(0.4), radius: 12, y: 6)
         }
         .disabled(selectedPackage == nil || viewModel.isLoading)
         .padding(.top, 4)
     }
 
-    // MARK: - Footer links
+    private var cancelAnytimeText: some View {
+        Text("No commitment, Cancel anytime")
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(.bfmBrownSoft)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 8)
+    }
 
+    // MARK: - Footer links
     private var footerLinks: some View {
         HStack(spacing: 14) {
             Button { openURL(URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!) } label: {
@@ -249,7 +308,6 @@ struct PaywallView: View {
 }
 
 // MARK: - Package Card
-
 private struct PackageCard: View {
     let package: Package
     let isSelected: Bool
@@ -257,39 +315,69 @@ private struct PackageCard: View {
     private var isYearly: Bool { package.packageType == .annual }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(isYearly ? "12-Month Access" : "Weekly Access")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.bfmBrown)
+        ZStack(alignment: .topTrailing) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(isYearly ? "12-Month Access" : "Weekly Access")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.bfmBrown)
 
-                Spacer()
+                    Text(isYearly ? "Billed yearly at $49.99" : "$4.99 per week")
+                        .font(.system(size: 13))
+                        .foregroundColor(.bfmBrownSoft)
 
-                if isYearly {
-                    Text("Save 81%")
-                        .font(.system(size: 12, weight: .bold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.bfmRoseDeep)
-                        .foregroundColor(.white)
-                        .clipShape(Capsule())
+                    if isYearly {
+                        Text("Just $0.96/week — cancel anytime")
+                            .font(.system(size: 11.5))
+                            .foregroundColor(.bfmBrownSoft.opacity(0.85))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                ZStack {
+                    if isSelected {
+                        Circle()
+                            .fill(Color.bfmRoseDeep)
+                            .frame(width: 26, height: 26)
+                            .overlay(
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                            )
+                    } else {
+                        Circle()
+                            .stroke(Color.bfmBrownSoft.opacity(0.5), lineWidth: 1.5)
+                            .frame(width: 26, height: 26)
+                    }
                 }
             }
-
-            Text(isYearly ? "Billed yearly at $49.99" : "$4.99 per week")
-                .font(.system(size: 13))
-                .foregroundColor(.bfmBrownSoft)
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        isSelected
+                        ? AnyShapeStyle(
+                            LinearGradient(
+                                colors: [Color.bfmBlush.opacity(0.9), Color.bfmPeach.opacity(0.7)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                          )
+                        : AnyShapeStyle(Color.white.opacity(0.4))
+                    )
+            )
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(isSelected ? Color.bfmRoseDeep : Color.bfmBrownSoft.opacity(0.2), lineWidth: isSelected ? 2 : 1))
 
             if isYearly {
-                Text("Just $0.96/week — cancel anytime")
-                    .font(.system(size: 11.5))
-                    .foregroundColor(.bfmBrownSoft.opacity(0.85))
+                Text("Save 81%")
+                    .font(.system(size: 12, weight: .bold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.bfmRoseDeep)
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+                    .offset(x: 10, y: -14)
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16).fill(isSelected ? Color.white.opacity(0.85) : Color.white.opacity(0.4)))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(isSelected ? Color.bfmRoseDeep : Color.bfmBrownSoft.opacity(0.2), lineWidth: isSelected ? 2 : 1))
     }
 }
 
