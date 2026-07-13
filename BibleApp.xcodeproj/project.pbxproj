@@ -12,6 +12,7 @@
 		925B56462E4122B400C17F94 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 925B56452E4122B400C17F94 /* FirebaseFirestore */; };
 		925B56482E4122B400C17F94 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 925B56472E4122B400C17F94 /* FirebaseFunctions */; };
 		925B564A2E4122B400C17F94 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 925B56492E4122B400C17F94 /* FirebaseStorage */; };
+		92BD17D93004A3A6005C239D /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 92BD17D83004A3A6005C239D /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,33 +38,9 @@
 		925B562B2E411DD400C17F94 /* BibleAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BibleAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		92C0642F2FB75FAF0067DFD8 /* Exceptions for "BibleApp" folder in "BibleApp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Resources/journey_days.json,
-			);
-			target = 925B56132E411DD200C17F94 /* BibleApp */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		92C064302FB75FAF0067DFD8 /* Exceptions for "BibleApp" folder in "Compile Sources" phase from "BibleApp" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 925B56102E411DD200C17F94 /* Sources */;
-			membershipExceptions = (
-				Resources/journey_days.json,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		925B56162E411DD200C17F94 /* BibleApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				92C0642F2FB75FAF0067DFD8 /* Exceptions for "BibleApp" folder in "BibleApp" target */,
-				92C064302FB75FAF0067DFD8 /* Exceptions for "BibleApp" folder in "Compile Sources" phase from "BibleApp" target */,
-			);
 			path = BibleApp;
 			sourceTree = "<group>";
 		};
@@ -86,6 +63,7 @@
 			files = (
 				925B56422E4122B400C17F94 /* FirebaseAuth in Frameworks */,
 				925B56442E4122B400C17F94 /* FirebaseAuthCombine-Community in Frameworks */,
+				92BD17D93004A3A6005C239D /* RevenueCat in Frameworks */,
 				925B56462E4122B400C17F94 /* FirebaseFirestore in Frameworks */,
 				925B564A2E4122B400C17F94 /* FirebaseStorage in Frameworks */,
 				925B56482E4122B400C17F94 /* FirebaseFunctions in Frameworks */,
@@ -154,6 +132,7 @@
 				925B56452E4122B400C17F94 /* FirebaseFirestore */,
 				925B56472E4122B400C17F94 /* FirebaseFunctions */,
 				925B56492E4122B400C17F94 /* FirebaseStorage */,
+				92BD17D83004A3A6005C239D /* RevenueCat */,
 			);
 			productName = BibleApp;
 			productReference = 925B56142E411DD200C17F94 /* BibleApp.app */;
@@ -239,6 +218,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				925B56402E4122B300C17F94 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				92BD17D73004A3A6005C239D /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 925B56152E411DD200C17F94 /* Products */;
@@ -627,6 +607,14 @@
 				minimumVersion = 12.0.0;
 			};
 		};
+		92BD17D73004A3A6005C239D /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.80.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -654,6 +642,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 925B56402E4122B300C17F94 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		92BD17D83004A3A6005C239D /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 92BD17D73004A3A6005C239D /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

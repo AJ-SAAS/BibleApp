@@ -4,6 +4,7 @@ import FirebaseAuth
 struct SettingsView: View {
     @EnvironmentObject var authState: AuthenticationState
     @StateObject private var viewModel = AuthViewModel()
+    @StateObject private var purchaseViewModel = PurchaseViewModel()
     @State private var name: String = ""
     @State private var ageRange: String = ""
     @State private var email: String = ""
@@ -17,6 +18,7 @@ struct SettingsView: View {
     @State private var showDeleteConfirmation: Bool = false
     @State private var deletionError: String?
     @State private var isDeleting: Bool = false
+    @State private var showPaywall: Bool = false
 
     let ageRanges = ["13–17", "18–24", "25–34", "35–44", "45–54", "55+"]
     let denominations = ["Orthodox", "Catholic", "Baptist", "Methodist", "Pentecostal", "Other"]
@@ -30,6 +32,7 @@ struct SettingsView: View {
     private let websiteURL = URL(string: "https://www.faithformoms.com/")!
     private let termsOfUseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
     private let supportEmailURL = URL(string: "mailto:faithformoms@gmail.com?subject=Daily%20Bible%20App%20Support")!
+    private let manageSubscriptionURL = URL(string: "https://apps.apple.com/account/subscriptions")!
 
     private let userDefaults = UserDefaults.standard
     private let nameKey = "UserName"
@@ -80,6 +83,47 @@ struct SettingsView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.top, 20)
+
+                    // ── Subscription section ─────────────────
+                    settingsCard {
+                        sectionHeader("Subscription", icon: "sparkles")
+
+                        subscriptionStatusRow
+
+                        divider()
+
+                        if purchaseViewModel.isPremium {
+                            Link(destination: manageSubscriptionURL) {
+                                actionRow(label: "Manage Subscription", icon: "creditcard", color: .roseGold)
+                            }
+                        } else {
+                            Button(action: { showPaywall = true }) {
+                                actionRow(label: "Upgrade to Premium", icon: "sparkles", color: .roseGold)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+
+                        divider()
+
+                        Button(action: {
+                            Task { await purchaseViewModel.restorePurchases() }
+                        }) {
+                            actionRow(
+                                label: purchaseViewModel.isLoading ? "Restoring…" : "Restore Purchases",
+                                icon: "arrow.clockwise",
+                                color: .textDark
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(purchaseViewModel.isLoading)
+
+                        if let error = purchaseViewModel.errorMessage {
+                            Text(error)
+                                .font(.system(size: 13))
+                                .foregroundColor(.red)
+                                .padding(.top, 4)
+                        }
+                    }
 
                     // ── Account section ──────────────────────
                     if authState.isAuthenticated {
@@ -196,6 +240,12 @@ struct SettingsView: View {
         }
         .navigationTitle("")
         .navigationBarHidden(true)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
+        .task {
+            await purchaseViewModel.refreshPremiumStatus()
+        }
         .alert("Delete Account", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) { showDeleteConfirmation = false }
             Button("Delete", role: .destructive) {
@@ -220,6 +270,27 @@ struct SettingsView: View {
     }
 
     // MARK: - Reusable Components
+
+    @ViewBuilder
+    private var subscriptionStatusRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: purchaseViewModel.isPremium ? "checkmark.seal.fill" : "seal")
+                .font(.system(size: 15))
+                .foregroundColor(purchaseViewModel.isPremium ? .roseGold : .textSoft)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(purchaseViewModel.isPremium ? "Premium" : "Free Plan")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.textDark)
+                Text(purchaseViewModel.isPremium
+                     ? "You have full access to every Journey"
+                     : "Unlock every Journey with Premium")
+                    .font(.system(size: 12))
+                    .foregroundColor(.textSoft)
+            }
+            Spacer()
+        }
+        .padding(.vertical, 6)
+    }
 
     @ViewBuilder
     private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {

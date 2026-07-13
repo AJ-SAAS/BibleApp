@@ -20,9 +20,9 @@ extension Color {
 struct HomeView: View {
     @EnvironmentObject var authState: AuthenticationState
     @StateObject private var viewModel = DevotionViewModel()
+    @StateObject private var savedStore = SavedPromisesStore.shared
 
     @State private var selectedFeeling: String = "overwhelmed"
-    @State private var savedVerses: Set<String> = []
     @State private var showShareSheet: Bool = false
     @State private var shareText: String = ""
     @State private var cardVisible: Bool = false
@@ -261,7 +261,9 @@ struct HomeView: View {
     // MARK: - Promise Card
 
     private var promiseCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let isSaved = savedStore.isSaved(situation: currentPromise.situation, verse: currentPromise.verse)
+
+        return VStack(alignment: .leading, spacing: 0) {
 
             HStack {
                 Text("✦  TODAY'S PROMISE")
@@ -323,18 +325,14 @@ struct HomeView: View {
                 HStack(spacing: 10) {
                     Button(action: {
                         withAnimation(.spring()) {
-                            if savedVerses.contains(currentPromise.reference) {
-                                savedVerses.remove(currentPromise.reference)
-                            } else {
-                                savedVerses.insert(currentPromise.reference)
-                            }
+                            savedStore.toggle(currentPromise)
                         }
                     }) {
                         HStack(spacing: 7) {
-                            Image(systemName: savedVerses.contains(currentPromise.reference) ? "heart.fill" : "heart")
+                            Image(systemName: isSaved ? "heart.fill" : "heart")
                                 .font(.system(size: 14))
-                                .foregroundColor(savedVerses.contains(currentPromise.reference) ? Color(hex: "#d4827a") : .textSoft)
-                            Text(savedVerses.contains(currentPromise.reference) ? "Saved" : "Save")
+                                .foregroundColor(isSaved ? Color(hex: "#d4827a") : .textSoft)
+                            Text(isSaved ? "Saved" : "Save")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.textMid)
                         }

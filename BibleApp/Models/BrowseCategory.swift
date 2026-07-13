@@ -24,7 +24,7 @@ struct MomPromise {
 // MARK: - SavedPromise
 // Shared model used by SavedView
 
-struct SavedPromise: Identifiable {
+struct SavedPromise: Identifiable, Codable {
     let id = UUID()
     let situation: String
     let verse: String

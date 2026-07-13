@@ -56,7 +56,7 @@ struct TabBarView: View {
 
             // MARK: - Saved
             NavigationStack {
-                SavedView()
+                SavedView(selectedTab: $selectedTab)
                     .environmentObject(authState)
             }
             .tabItem {

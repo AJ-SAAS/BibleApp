@@ -6,31 +6,29 @@ struct ContentView: View {
     @State private var showSplashView: Bool = true
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if showSplashView {
-                    SplashView()
-                        .environmentObject(authState)
-                        .navigationBarBackButtonHidden(true)
-                        .onDisappear {
-                            showSplashView = false
-                        }
-                }
-                else if !hasCompletedOnboarding {
-                    OnboardingView()
-                        .environmentObject(authState)
-                        .navigationBarBackButtonHidden(true)
-                }
-                else if authState.isAuthenticated || authState.isGuest {
-                    TabBarView()
-                        .environmentObject(authState)
-                        .navigationBarBackButtonHidden(true)
-                }
-                else {
-                    OnboardingView()
-                        .environmentObject(authState)
-                        .navigationBarBackButtonHidden(true)
-                }
+        ZStack {
+            if showSplashView {
+                SplashView()
+                    .environmentObject(authState)
+                    .navigationBarBackButtonHidden(true)
+                    .onDisappear {
+                        showSplashView = false
+                    }
+            }
+            else if !hasCompletedOnboarding {
+                OnboardingView()
+                    .environmentObject(authState)
+                    .navigationBarBackButtonHidden(true)
+            }
+            else if authState.isAuthenticated || authState.isGuest {
+                TabBarView()
+                    .environmentObject(authState)
+                    .navigationBarBackButtonHidden(true)
+            }
+            else {
+                OnboardingView()
+                    .environmentObject(authState)
+                    .navigationBarBackButtonHidden(true)
             }
         }
         .onAppear {

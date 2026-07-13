@@ -8,7 +8,7 @@ struct OnboardingView: View {
         MissionScreen(
             onContinueAsGuest: {
                 authState.updateAuthenticationState(isAuthenticated: false, isGuest: true)
-                // IMPORTANT: Do NOT set hasCompletedOnboarding = true here
+                hasCompletedOnboarding = true   // ← Added this line
             },
             onSignIn: {
                 // Navigation to AuthView is handled inside MissionScreen if needed

@@ -1,12 +1,16 @@
 import SwiftUI
 
 struct SavedView: View {
-    // TODO: Replace with Firebase fetch when ready
-    @State private var savedItems: [SavedPromise] = []
+    @StateObject private var store = SavedPromisesStore.shared
+
+    // Lets the empty-state CTA jump back to the Today tab.
+    // Pass a real binding from TabBarView; defaults to a no-op constant
+    // so this view still works and previews fine on its own.
+    var selectedTab: Binding<Int> = .constant(0)
 
     var body: some View {
         Group {
-            if savedItems.isEmpty {
+            if store.savedItems.isEmpty {
                 emptyState
             } else {
                 savedList
@@ -20,27 +24,68 @@ struct SavedView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 22) {
             Spacer()
 
-            Text("♡")
-                .font(.system(size: 60))
-                .foregroundColor(Color(hex: "#e8c88a"))
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#fdeaea"), Color(hex: "#f7d9d9")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 88, height: 88)
 
-            Text("Your saved promises")
-                .font(.custom("Georgia", size: 22))
-                .italic()
-                .foregroundColor(Color(hex: "#2c1f14"))
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 30))
+                    .foregroundColor(Color(hex: "#d4846a"))
+            }
 
-            Text("Tap the heart on any promise\nto save it here for later.")
-                .font(.system(size: 14))
-                .foregroundColor(Color(hex: "#9e7e62"))
-                .multilineTextAlignment(.center)
-                .lineSpacing(5)
+            VStack(spacing: 8) {
+                Text("Your saved promises live here")
+                    .font(.custom("Georgia", size: 19))
+                    .foregroundColor(Color(hex: "#2c1f14"))
+                    .multilineTextAlignment(.center)
 
+                Text("Tap the heart on today's promise\nto keep it close and come back anytime.")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(hex: "#9e7e62"))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(5)
+            }
+            .padding(.horizontal, 32)
+
+            Button {
+                selectedTab.wrappedValue = 0
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 13))
+                    Text("Go to today's promise")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 22)
+                .padding(.vertical, 13)
+                .background(
+                    LinearGradient(
+                        colors: [Color(hex: "#d4846a"), Color(hex: "#c9847a")],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(Capsule())
+                .shadow(color: Color(hex: "#d4846a").opacity(0.3), radius: 10, y: 4)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.top, 4)
+
+            Spacer()
             Spacer()
         }
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 20)
     }
 
     // MARK: - Saved List
@@ -48,7 +93,7 @@ struct SavedView: View {
     private var savedList: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 12) {
-                ForEach(savedItems) { item in
+                ForEach(store.savedItems) { item in
                     savedCard(item)
                 }
             }
@@ -69,7 +114,7 @@ struct SavedView: View {
                     .foregroundColor(Color(hex: "#c4924a"))
                 Spacer()
                 Button(action: {
-                    savedItems.removeAll { $0.id == item.id }
+                    store.remove(id: item.id)
                 }) {
                     Image(systemName: "heart.fill")
                         .foregroundColor(Color(hex: "#d4846a"))

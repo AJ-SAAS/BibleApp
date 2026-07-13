@@ -1,10 +1,27 @@
 import SwiftUI
 
+// navigationDestination(item:) requires Journey: Hashable. Manual conformance
+// here (rather than relying on auto-synthesis) works regardless of which
+// file Journey.swift lives in. If you'd rather, move this into Journey.swift
+// directly and delete it from here.
+extension Journey: Hashable {
+    static func == (lhs: Journey, rhs: Journey) -> Bool {
+        lhs.id == rhs.id
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
 struct JourneyBrowseView: View {
 
     let journeys = JourneyService.shared.loadJourneys()
 
+    @StateObject private var purchaseViewModel = PurchaseViewModel()
+
     @State private var selectedCategory: String = "All"
+    @State private var selectedJourney: Journey?       // drives navigation
+    @State private var journeyPendingUnlock: Journey?   // drives paywall sheet
 
     let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -69,10 +86,15 @@ struct JourneyBrowseView: View {
                 // Grid
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(filteredJourneys) { journey in
-                        NavigationLink {
-                            JourneyDetailView(journey: journey)
+                        Button {
+                            handleTap(on: journey)
                         } label: {
                             JourneyCardView(journey: journey)
+                                .overlay(alignment: .topTrailing) {
+                                    if journey.isPremium && !purchaseViewModel.isPremium {
+                                        lockBadge
+                                    }
+                                }
                         }
                         .buttonStyle(.plain)
                     }
@@ -83,6 +105,40 @@ struct JourneyBrowseView: View {
         }
         .background(Color.blushWhite)
         .navigationBarHidden(true)
+        // Push to the detail screen only once we know the user can access it.
+        .navigationDestination(item: $selectedJourney) { journey in
+            JourneyDetailView(journey: journey)
+        }
+        // Locked journeys show the paywall instead of navigating.
+        .sheet(item: $journeyPendingUnlock) { journey in
+            PaywallView { didSubscribe in
+                if didSubscribe {
+                    // Send them straight into the journey they tapped.
+                    selectedJourney = journey
+                }
+            }
+        }
+        .task {
+            await purchaseViewModel.refreshPremiumStatus()
+        }
+    }
+
+    private var lockBadge: some View {
+        Image(systemName: "lock.fill")
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(.white)
+            .padding(6)
+            .background(Color.black.opacity(0.35))
+            .clipShape(Circle())
+            .padding(8)
+    }
+
+    private func handleTap(on journey: Journey) {
+        if journey.isPremium && !purchaseViewModel.isPremium {
+            journeyPendingUnlock = journey
+        } else {
+            selectedJourney = journey
+        }
     }
 }
 

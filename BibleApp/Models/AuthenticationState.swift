@@ -4,6 +4,7 @@ import FirebaseAuth
 class AuthenticationState: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var isGuest: Bool = false
+
     private var authListenerHandle: AuthStateDidChangeListenerHandle?
 
     private let isGuestKey = "authState_isGuest"
@@ -13,13 +14,13 @@ class AuthenticationState: ObservableObject {
         // Restore guest session from UserDefaults on launch
         self.isGuest = UserDefaults.standard.bool(forKey: isGuestKey)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.authListenerHandle = Auth.auth().addStateDidChangeListener { _, user in
-                if !self.isAuthenticated && !self.isGuest {
-                    self.isAuthenticated = user != nil
-                    self.isGuest = user == nil && self.isGuest
-                }
-            }
+        // Listen immediately for Firebase authentication changes
+        authListenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            guard let self = self else { return }
+
+            // Only update authentication state.
+            // Guest mode is managed separately.
+            self.isAuthenticated = (user != nil)
         }
     }
 
